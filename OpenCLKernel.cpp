@@ -14,6 +14,7 @@
 #endif
 
 #include "OpenCLKernel.h"
+#include "KernelDebugHelper.h"
 
 #define MAX_SOURCE_SIZE (0x100000)
 
@@ -153,6 +154,8 @@ void RunOpenCLKernel(void* p_CmdQ, int p_Width, int p_Height, float* p_Fov, floa
 
 	int bilinear(p_Bilinear ? 1 : 0);
 
+    ComputePrintDebugInformations("OpenCL",p_Width, p_Height, p_Fov, p_Tinyplanet, p_Rectilinear, p_RotMat, p_Samples, p_Bilinear);
+    
     locker.Unlock();
     int count = 0;
 

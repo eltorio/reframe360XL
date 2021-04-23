@@ -26,7 +26,7 @@ else
 	APPLEARM64_FLAG =  -target arm64-apple-macos11
 endif
 
-Reframe360.ofx:  Reframe360.o $(OPENCL_OBJ) $(CUDA_OBJ) $(METAL_OBJ) ofxsCore.o ofxsImageEffect.o ofxsInteract.o ofxsLog.o ofxsMultiThread.o ofxsParams.o ofxsProperty.o ofxsPropertyValidation.o
+Reframe360.ofx:  Reframe360.o $(OPENCL_OBJ) $(CUDA_OBJ) $(METAL_OBJ) KernelDebugHelper.o ofxsCore.o ofxsImageEffect.o ofxsInteract.o ofxsLog.o ofxsMultiThread.o ofxsParams.o ofxsProperty.o ofxsPropertyValidation.o
 	$(CXX) $(APPLE86_64_FLAG) $^ -o $@ $(LDFLAGS)
 	mkdir -p $(BUNDLE_DIR)
 	cp Reframe360.ofx $(BUNDLE_DIR)
@@ -43,6 +43,9 @@ Reframe360Kernel.o: Reframe360Kernel.mm
 
 OpenCLKernel.o: OpenCLKernel.h OpenCLKernel.cpp
 	$(CXX) $(APPLE86_64_FLAG) -c OpenCLKernel.cpp $(CXXFLAGS) -o OpenCLKernel.o
+
+KernelDebugHelper.o: KernelDebugHelper.cpp
+	$(CXX) $(APPLE86_64_FLAG)  -c "$<" $(CXXFLAGS) -o $@
 
 OpenCLKernel.h: Reframe360Kernel.cl
 	python ./HardcodeKernel.py OpenCLKernel Reframe360Kernel.cl
@@ -71,7 +74,7 @@ ofxsProperty.o: $(BMDOFXDEVPATH)/Support/Library/ofxsProperty.cpp
 ofxsPropertyValidation.o: $(BMDOFXDEVPATH)/Support/Library/ofxsPropertyValidation.cpp
 	$(CXX) $(APPLE86_64_FLAG) -c "$<" $(CXXFLAGS)
 
-Reframe360-arm.ofx:  Reframe360-arm.o $(OPENCL_ARM_OBJ) $(METAL_ARM_OBJ) ofxsCore-arm.o ofxsImageEffect-arm.o ofxsInteract-arm.o ofxsLog-arm.o ofxsMultiThread-arm.o ofxsParams-arm.o ofxsProperty-arm.o ofxsPropertyValidation-arm.o
+Reframe360-arm.ofx:  Reframe360-arm.o $(OPENCL_ARM_OBJ) $(METAL_ARM_OBJ) KernelDebugHelper-arm.o ofxsCore-arm.o ofxsImageEffect-arm.o ofxsInteract-arm.o ofxsLog-arm.o ofxsMultiThread-arm.o ofxsParams-arm.o ofxsProperty-arm.o ofxsPropertyValidation-arm.o
 	$(CXX) $(APPLEARM64_FLAG) $^ -o $@ $(LDFLAGS)
 	mkdir -p $(BUNDLE_DIR)
 	cp Reframe360.ofx $(BUNDLE_DIR)
@@ -82,6 +85,9 @@ Reframe360-arm.o: Reframe360.cpp
 Reframe360Kernel-arm.o: Reframe360Kernel.mm
 	python metal2string.py Reframe360Kernel.metal Reframe360Kernel.h
 	$(CXX) $(APPLEARM64_FLAG) -c $< $(CXXFLAGS) -o $@
+
+KernelDebugHelper-arm.o: KernelDebugHelper.cpp
+	$(CXX) $(APPLEARM64_FLAG)  -c "$<" $(CXXFLAGS) -o $@
 
 OpenCLKernel-arm.o: OpenCLKernel.h OpenCLKernel.cpp
 	$(CXX) $(APPLEARM64_FLAG) -c OpenCLKernel.cpp $(CXXFLAGS) -o OpenCLKernel-arm.o

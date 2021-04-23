@@ -1,5 +1,6 @@
 #import <Metal/Metal.h>
 #import "Reframe360Kernel.h"
+#import "KernelDebugHelper.h"
 
 void RunMetalKernel(void* p_CmdQ, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, const float* p_Input, float* p_Output,float* p_RotMat, int p_Samples,
                             bool p_Bilinear)
@@ -62,9 +63,8 @@ void RunMetalKernel(void* p_CmdQ, int p_Width, int p_Height, float* p_Fov, float
     int exeWidth = [pipelineState threadExecutionWidth];
     MTLSize threadGroupCount = MTLSizeMake(exeWidth, 1, 1);
     MTLSize threadGroups     = MTLSizeMake((p_Width + exeWidth - 1)/exeWidth, p_Height, 1);
-#ifdef DEBUG
-    fprintf(stdout, "MetalKernel Working for, W:%d H:%d\n\trotMatrix: %2.2f\t%2.2f\t%2.2f\n\t         : %2.2f\t%2.2f\t%2.2f\n\t         : %2.2f\t%2.2f\t%2.2f\n\tfov:%2.6f tinyplanet:%2.6f rectilinear:%2.6f samples:%d bilinear:%d \n", p_Width, p_Height, p_RotMat[0],p_RotMat[1],p_RotMat[2],p_RotMat[3],p_RotMat[4],p_RotMat[5],p_RotMat[6],p_RotMat[7],p_RotMat[8],p_Fov[0], p_Tinyplanet[0], p_Rectilinear[0], p_Samples,p_Bilinear);
-#endif
+
+    ComputePrintDebugInformations("Metal",p_Width, p_Height, p_Fov, p_Tinyplanet, p_Rectilinear, p_RotMat, p_Samples, p_Bilinear);
     [computeEncoder setBuffer:srcDeviceBuf offset: 0 atIndex: 0];
     [computeEncoder setBuffer:dstDeviceBuf offset: 0 atIndex: 8];
     [computeEncoder setBytes:&p_Width length:sizeof(int) atIndex:11];
