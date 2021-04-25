@@ -26,3 +26,7 @@ make
 # Binary for MacOS
 * install [bundle](https://github.com/eltorio/reframe360XL/blob/master/Reframe360.ofx.bundle.zip?raw=true)
 * uncompress it and puts it to /Library/OFX/Plugins
+
+# Binaries for MacOS / Linux 64 / Windows 64
+* Windows and Linux are coming directly from [Sylvain repository](https://github.com/LRP-sgravel/reframe360XL)
+* bundled in the [same «universal» plugin](https://github.com/eltorio/reframe360XL/blob/master/Reframe360.ofx.bundle.zip?raw=true)

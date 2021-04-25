@@ -129,7 +129,7 @@ macos-bin: install-universal
 
 clean:
 	rm -f *.o *.ofx *.zip *.metallib Reframe360Kernel.h OpenCLKernel.h
-	rm -fr Reframe360.ofx.bundle
+	rm -fr $(BUNDLE_DIR)
 
 ifeq ($(UNAME_SYSTEM), Darwin)
 .DEFAULT_GOAL := darwin
@@ -137,11 +137,18 @@ ifeq ($(UNAME_SYSTEM), Darwin)
 .PHONY: darwin
 darwin: clean install-universal macos-bin
 
+get-LRP-sgravel-win-binary:
+	curl -L  https://github.com/LRP-sgravel/reframe360XL/blob/master/Reframe360Plugin.ofx.bundle.Win.zip?raw=true > Reframe360Plugin.ofx.bundle.Win.zip
+	unzip -u Reframe360Plugin.ofx.bundle.Win.zip
+	cp -a Reframe360Plugin.ofx.bundle/Contents/Win64 Reframe360.ofx.bundle/Contents/
+	rm -rf Reframe360Plugin.ofx.bundle
+	rm Reframe360Plugin.ofx.bundle.Win.zip
+	
 install: Reframe360.ofx
 	rm -rf /Library/OFX/Plugins/Reframe360.ofx.bundle
 	cp -a Reframe360.ofx.bundle /Library/OFX/Plugins/
 
-install-universal: Reframe360.ofx Reframe360-arm.ofx
+install-universal: Reframe360.ofx Reframe360-arm.ofx get-LRP-sgravel-win-binary
 	lipo -create -output Reframe360-universal.ofx Reframe360.ofx Reframe360-arm.ofx
 	rm -rf $(BUNDLE_DIR)
 	mkdir -p $(BUNDLE_DIR)
