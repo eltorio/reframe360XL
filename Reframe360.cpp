@@ -609,6 +609,8 @@ void Reframe360::setupAndProcess(ImageScaler& p_ImageScaler, const OFX::RenderAr
     float* tinyplanets = (float*)malloc(sizeof(float) * mb_samples);
     float* rectilinears = (float*)malloc(sizeof(float) * mb_samples);
     float* rotmats = (float*)malloc(sizeof(float) * mb_samples * 9);
+    // Yaw needs to be inverted in multi threaded rendering... not sure why
+    bool invertYaw = !p_Args.isEnabledCudaRender && !p_Args.isEnabledOpenCLRender && !p_Args.isEnabledMetalRender;
 
     for (int i = 0; i < mb_samples; i++)
     {
@@ -659,6 +661,11 @@ void Reframe360::setupAndProcess(ImageScaler& p_ImageScaler, const OFX::RenderAr
         tinyplanet1 = tinyplanet1 + (tinyplanet2 - tinyplanet1) * blend;
         recti1 = recti1 + (recti2 - recti1) * blend;
 
+        if (invertYaw)
+        {
+            yaw = -yaw;
+        }
+
         float* pitchMat = (float*)calloc(9, sizeof(float));
         pitchMatrix(-pitch / 180 * (float)M_PI, &pitchMat);
         float* yawMat = (float*)calloc(9, sizeof(float));
@@ -666,10 +673,10 @@ void Reframe360::setupAndProcess(ImageScaler& p_ImageScaler, const OFX::RenderAr
         float* rollMat = (float*)calloc(9, sizeof(float));
         rollMatrix(-roll / 180 * (float)M_PI, &rollMat);
 
-        float* pitchYawMat = (float*)calloc(9, sizeof(float));
+        float* pitchRollMat = (float*)calloc(9, sizeof(float));
         float* rotMat = (float*)calloc(9, sizeof(float));
-        matMul(pitchMat, rollMat, &pitchYawMat);
-        matMul(yawMat, pitchYawMat, &rotMat);
+        matMul(pitchMat, rollMat, &pitchRollMat);
+        matMul(yawMat, pitchRollMat, &rotMat);
 
         free(pitchMat);
         free(yawMat);

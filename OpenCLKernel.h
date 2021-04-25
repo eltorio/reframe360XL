@@ -57,7 +57,10 @@ const char *KernelSource = "\n" \
 "return uv;\n" \
 "}\n" \
 "\n" \
-"float3 fisheyeDir(float3 dir, float16 rotMat) {\n" \
+"float3 fisheyeDir(float3 dir, float16 rotMat)\n" \
+"{\n" \
+"if (dir.x == 0 && dir.y == 0)\n" \
+"return matMul(rotMat, dir);\n" \
 "\n" \
 "dir.x = dir.x / dir.z;\n" \
 "dir.y = dir.y / dir.z;\n" \
@@ -82,7 +85,11 @@ const char *KernelSource = "\n" \
 "return fedir;\n" \
 "}\n" \
 "\n" \
-"float3 tinyPlanetSph(float3 uv) {\n" \
+"float3 tinyPlanetSph(float3 uv)\n" \
+"{\n" \
+"if (uv.x == 0 && uv.y == 0)\n" \
+"return uv;\n" \
+"\n" \
 "float3 sph;\n" \
 "float2 uvxy;\n" \
 "uvxy.x = uv.x / uv.z;\n" \

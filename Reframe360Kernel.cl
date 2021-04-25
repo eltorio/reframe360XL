@@ -56,7 +56,10 @@ float2 polarCoord(float3 dir) {
 	return uv;
 }
 
-float3 fisheyeDir(float3 dir, float16 rotMat) {
+float3 fisheyeDir(float3 dir, float16 rotMat)
+{
+    if (dir.x == 0 && dir.y == 0)
+        return matMul(rotMat, dir);
 
 	dir.x = dir.x / dir.z;
 	dir.y = dir.y / dir.z;
@@ -81,7 +84,11 @@ float3 fisheyeDir(float3 dir, float16 rotMat) {
 	return fedir;
 }
 
-float3 tinyPlanetSph(float3 uv) {
+float3 tinyPlanetSph(float3 uv)
+{
+    if (uv.x == 0 && uv.y == 0)
+        return uv;
+
 	float3 sph;
 	float2 uvxy;
 	uvxy.x = uv.x / uv.z;

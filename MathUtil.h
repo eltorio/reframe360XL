@@ -68,7 +68,10 @@ static vec2 polarCoord(vec3 dir) {
 	return uv;
 }
 
-static vec3 fisheyeDir(vec3 dir, const mat3 rotMat) {
+static vec3 fisheyeDir(vec3 dir, const mat3 rotMat)
+{
+	if (dir.x == 0 && dir.y == 0)
+		return rotMat * dir;
 
 	dir.x = dir.x / dir.z;
 	dir.y = dir.y / dir.z;
@@ -93,8 +96,12 @@ static vec3 fisheyeDir(vec3 dir, const mat3 rotMat) {
 	return fedir;
 }
 
-vec3 tinyPlanetSph(vec3 uv) {
-	vec3 sph;
+vec3 tinyPlanetSph(vec3 uv)
+{
+	if (uv.x == 0 && uv.y == 0)
+		return uv;
+
+    vec3 sph;
 	vec2 uvxy;
 	uvxy.x = uv.x / uv.z;
 	uvxy.y = uv.y / uv.z;
