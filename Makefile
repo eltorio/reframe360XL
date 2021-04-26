@@ -141,6 +141,7 @@ get-LRP-sgravel-win-binary:
 	curl -L  https://github.com/LRP-sgravel/reframe360XL/blob/master/Reframe360Plugin.ofx.bundle.Win.zip?raw=true > Reframe360Plugin.ofx.bundle.Win.zip
 	unzip -u Reframe360Plugin.ofx.bundle.Win.zip
 	cp -a Reframe360Plugin.ofx.bundle/Contents/Win64 Reframe360.ofx.bundle/Contents/
+	mv Reframe360.ofx.bundle/Contents/Win64/Reframe360Plugin.ofx Reframe360.ofx.bundle/Contents/Win64/Reframe360.ofx
 	rm -rf Reframe360Plugin.ofx.bundle
 	rm Reframe360Plugin.ofx.bundle.Win.zip
 	

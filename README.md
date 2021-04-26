@@ -29,4 +29,5 @@ make
 
 # Binaries for MacOS / Linux 64 / Windows 64
 * Windows and Linux are coming directly from [Sylvain repository](https://github.com/LRP-sgravel/reframe360XL)
-* bundled in the [same «universal» plugin](https://github.com/eltorio/reframe360XL/blob/master/Reframe360.ofx.bundle.zip?raw=true)
+* for windows put the bundle directory in C:\Program Files\Common Files\OFX\Plugins\
+* the 3 architectures are bundled in the [same «universal» plugin](https://github.com/eltorio/reframe360XL/blob/master/Reframe360.ofx.bundle.zip?raw=true)
