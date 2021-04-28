@@ -9,14 +9,6 @@
 #define PI 3.1415926535897932384626433832795
 using namespace metal;
 
-float3 matMul(const float3 r012, const float3 r345, const float3 r678, float3 v){
-    float3 outvec = { 0, 0, 0 };
-    outvec.x = r012.x * v.x + r012.y * v.y + r012.z * v.z;
-    outvec.y = r345.x * v.x + r345.y * v.y + r345.z * v.z;
-    outvec.z = r678.x * v.x + r678.y * v.y + r678.z * v.z;
-    return outvec;
-}
-
 float2 repairUv(float2 uv){
     float2 outuv;
     
@@ -60,10 +52,10 @@ float2 polarCoord(float3 dir) {
     return uv;
 }
 
-float3 fisheyeDir(float3 dir, const float3 r012, const float3 r345, const float3 r678) {
+float3 fisheyeDir3(float3 dir, const float3x3 r3x3) {
     
     if (dir.x == 0 && dir.y == 0)
-        return matMul(r012, r345, r678, dir);
+        return r3x3*dir;
     
     dir.x = dir.x / dir.z;
     dir.y = dir.y / dir.z;
@@ -83,7 +75,7 @@ float3 fisheyeDir(float3 dir, const float3 r012, const float3 r345, const float3
     fedir.y = sin(theta) * sin(phi);
     fedir.z = cos(theta);
     
-    fedir = matMul(r012, r345, r678, fedir);
+    fedir = r3x3*fedir;
     
     return fedir;
 }
@@ -174,16 +166,14 @@ kernel void Reframe360Kernel(constant int& p_Width [[buffer (11)]],
             float3 tinyplanet = tinyPlanetSph(dir);
             tinyplanet = normalize(tinyplanet);
             
-            const float3 r012 = {r[i*9+0], r[i*9+1], r[i*9+2]}; //Motion blur samples
-            const float3 r345 = {r[i*9+3], r[i*9+4], r[i*9+5]}; //each rotation matrix is pitched
-            const float3 r678 = {r[i*9+6], r[i*9+7], r[i*9+8]}; //
+            const float3x3 r3x3 = {{r[i*9+0],r[i*9+3],r[i*9+6]},{r[i*9+1],r[i*9+4],r[i*9+7]},{r[i*9+2],r[i*9+5],r[i*9+8]}}; //metal matrices are column based
             
-            tinyplanet = matMul(r012, r345, r678, tinyplanet);
-            float3 rectdir = matMul(r012, r345, r678, dir);
+            tinyplanet = r3x3*tinyplanet;
+            float3 rectdir = r3x3*dir;
             
             rectdir = normalize(rectdir);
-            dir = mix(fisheyeDir(dir, r012, r345, r678), tinyplanet, p_Tinyplanet[i]);
-            dir = mix(dir, rectdir, p_Rectilinear[i]);
+            dir = mix(fisheyeDir3(dir,r3x3),tinyplanet,p_Tinyplanet[i]);
+            dir = mix(dir,rectdir,p_Rectilinear[i]);
             
             float2 iuv = polarCoord(dir);
             iuv = repairUv(iuv);
