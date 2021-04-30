@@ -590,7 +590,7 @@ void Reframe360::setupAndProcess(ImageScaler& p_ImageScaler, const OFX::RenderAr
           blend = 0.0f;
 
     int mb_samples = (int)m_Samples->getValueAtTime(p_Args.time);
-    float mb_shutter = (float)m_Shutter->getValueAtTime(p_Args.time) * 0.5f;
+    float mb_shutter = (float)m_Shutter->getValueAtTime(p_Args.time);
     int bilinear = m_Bilinear->getValueAtTime(p_Args.time);
 
     int activeCam = m_ActiveCamera->getValueAtTime(p_Args.time) - 1;
@@ -620,7 +620,7 @@ void Reframe360::setupAndProcess(ImageScaler& p_ImageScaler, const OFX::RenderAr
             offset = fitRange((float)i, 0, mb_samples - 1.0f, -1.0f, 1.0f);
         }
 
-        offset *= mb_shutter;
+        offset *= mb_shutter / 360;
 
         pitch = BlendParam(m_Pitch, p_Args, offset);
         yaw = BlendParam(m_Yaw, p_Args, offset);
@@ -1028,7 +1028,7 @@ void Reframe360Factory::describeInContext(OFX::ImageEffectDescriptor& p_Desc, OF
     motionblurGroup->setHint("Motion Camera Parameters");
     motionblurGroup->setLabels("Motion Blur Parameters", "Motion Blur Parameters", "Motion Blur Parameters");
 
-    param = defineParam(p_Desc, "shutter", "Shutter Angle", "Shutter Angle", motionblurGroup, 0, 1, 0, 0, 3);
+    param = defineAngleParam(p_Desc, "shutter", "Shutter Angle", "Shutter Angle", motionblurGroup, 0, 360, 180, 0, 540);
     page->addChild(*param);
 
     intParam = defineIntParam(p_Desc, "samples", "Samples", "Samples", motionblurGroup, 1, 20, 1, 1, 256);
