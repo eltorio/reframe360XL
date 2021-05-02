@@ -138,7 +138,7 @@ ifeq ($(UNAME_SYSTEM), Darwin)
 darwin: clean install-universal macos-bin
 
 get-LRP-sgravel-win-binary:
-	curl -L  https://github.com/LRP-sgravel/reframe360XL/blob/master/Reframe360Plugin.ofx.bundle.Win.zip?raw=true > Reframe360Plugin.ofx.bundle.Win.zip
+	curl -L  https://github.com/LRP-sgravel/reframe360XL/blob/master/Reframe360XL_Win.zip?raw=true > Reframe360Plugin.ofx.bundle.Win.zip
 	unzip -u Reframe360Plugin.ofx.bundle.Win.zip
 	cp -a Reframe360Plugin.ofx.bundle/Contents/Win64 Reframe360.ofx.bundle/Contents/
 	mv Reframe360.ofx.bundle/Contents/Win64/Reframe360Plugin.ofx Reframe360.ofx.bundle/Contents/Win64/Reframe360.ofx
