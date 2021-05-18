@@ -6,9 +6,9 @@ NVCC = ${CUDAPATH}/bin/nvcc
 CXXFLAGS += -std=c++11 -fvisibility=hidden -I$(OFXPATH)/include -I$(BMDOFXDEVPATH)/Support/include -I$(BMDOFXDEVPATH)/OpenFX-1.4/include -I$(GLMPATH)
 
 ifeq ($(UNAME_SYSTEM), Linux)
-	BMDOFXDEVPATH = /opt/resolve/Developer
-	OPENCLPATH = /opt/AMDAPP
-	CXXFLAGS += -I${OPENCLPATH}/include -fPIC -D__OPENCL__
+	BMDOFXDEVPATH = /opt/resolve/Developer/OpenFX
+	OPENCLPATH = /usr
+	CXXFLAGS += -I${OPENCLPATH}/include -fPIC -Dlinux -D__OPENCL__
 	NVCCFLAGS = --compiler-options="-fPIC"
 	LDFLAGS = -shared -fvisibility=hidden -L${CUDAPATH}/lib64 -lcuda -lcudart
 	BUNDLE_DIR = Reframe360.ofx.bundle/Contents/Linux-x86-64/
@@ -151,9 +151,13 @@ install: Reframe360.ofx
 
 install-universal: Reframe360.ofx Reframe360-arm.ofx get-LRP-sgravel-win-binary
 	lipo -create -output Reframe360-universal.ofx Reframe360.ofx Reframe360-arm.ofx
-	rm -rf $(BUNDLE_DIR)
 	mkdir -p $(BUNDLE_DIR)
 	cp Reframe360-universal.ofx $(BUNDLE_DIR)/Reframe360.ofx
 	rm -rf /Library/OFX/Plugins/Reframe360.ofx.bundle
 	cp -a Reframe360.ofx.bundle /Library/OFX/Plugins/
+else
+install: Reframe360.ofx
+	rm -rf /usr/OFX/Plugins/Reframe360.ofx.bundle
+	mkdir -p /usr/OFX/Plugins/
+	cp -a Reframe360.ofx.bundle /usr/OFX/Plugins/
 endif
