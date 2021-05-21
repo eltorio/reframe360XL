@@ -1,70 +1,30 @@
-﻿Build started 18.08.2018 19:14:22.
-     1>Project "C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX\Reframe360\Reframe360.vcxproj" on node 2 (Build target(s)).
-     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.CppBuild.targets(364,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
-     1>PreBuildEvent:
-         pre_build.bat
-         :VCEnd
-         ['./HardcodeKernel.py', 'OpenCLKernel.cpp', 'Reframe360Kernel.cl']
-         bla
-       ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\include" /Zi /nologo /W3 /WX- /O2 /GL /D WIN32 /D NDEBUG /D _WINDOWS /D _USRDLL /D _WINDLL /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Release\\" /Fd"x64\Release\vc120.pdb" /Gd /TP /errorReport:prompt OpenCLKernel.cpp Reframe360.cpp
-         OpenCLKernel.cpp
-         Reframe360.cpp
-     1>c:\programdata\blackmagic design\davinci resolve\support\developer\openfx\reframe360\MathUtil.h(28): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\programdata\blackmagic design\davinci resolve\support\developer\openfx\reframe360\MathUtil.h(31): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\programdata\blackmagic design\davinci resolve\support\developer\openfx\reframe360\MathUtil.h(38): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\programdata\blackmagic design\davinci resolve\support\developer\openfx\reframe360\MathUtil.h(41): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\programdata\blackmagic design\davinci resolve\support\developer\openfx\reframe360\MathUtil.h(101): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\programdata\blackmagic design\davinci resolve\support\developer\openfx\reframe360\MathUtil.h(135): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\programdata\blackmagic design\davinci resolve\support\developer\openfx\reframe360\MathUtil.h(136): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\programdata\blackmagic design\davinci resolve\support\developer\openfx\reframe360\MathUtil.h(137): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\programdata\blackmagic design\davinci resolve\support\developer\openfx\reframe360\MathUtil.h(138): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(189): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(190): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(208): warning C4244: 'initializing' : conversion from 'float' to 'int', possible loss of data
-     1>Reframe360.cpp(209): warning C4244: 'initializing' : conversion from 'float' to 'int', possible loss of data
-     1>Reframe360.cpp(496): warning C4244: 'return' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(503): warning C4244: 'return' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(509): warning C4244: 'return' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(537): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(591): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(593): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(596): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(600): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(615): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(617): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(619): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(633): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(634): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(635): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>Reframe360.cpp(649): warning C4800: 'int' : forcing value to bool 'true' or 'false' (performance warning)
-     1>Reframe360.cpp(801): warning C4305: 'argument' : truncation from 'double' to 'float'
-     1>Reframe360.cpp(848): warning C4305: 'argument' : truncation from 'double' to 'float'
-     1>Reframe360.cpp(873): warning C4305: 'argument' : truncation from 'double' to 'float'
-       Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"..\..\..\..\..\..\..\Program Files\Common Files\OFX\Plugins\Reframe360.dll" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\lib\x64" kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib cuda.lib cudart.lib OpenCL.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"..\..\..\..\..\..\..\Program Files\Common Files\OFX\Plugins\Reframe360.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"..\..\..\..\..\..\..\Program Files\Common Files\OFX\Plugins\Reframe360.lib" /MACHINE:X64 /DLL x64\Release\CudaKernel.cu.obj
-         x64\Release\ofxsCore.obj
-         x64\Release\ofxsImageEffect.obj
-         x64\Release\ofxsInteract.obj
-         x64\Release\ofxsLog.obj
-         x64\Release\ofxsMultiThread.obj
-         x64\Release\ofxsParams.obj
-         x64\Release\ofxsProperty.obj
-         x64\Release\ofxsPropertyValidation.obj
-         x64\Release\Reframe360.obj
-         x64\Release\OpenCLKernel.obj
-            Creating library ..\..\..\..\..\..\..\Program Files\Common Files\OFX\Plugins\Reframe360.lib and object ..\..\..\..\..\..\..\Program Files\Common Files\OFX\Plugins\Reframe360.exp
-         Generating code
-         Finished generating code
-         Reframe360.vcxproj -> C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX\Reframe360\..\..\..\..\..\..\..\Program Files\Common Files\OFX\Plugins\Reframe360.dll
-       PostBuildEvent:
-         if not exist "..\..\..\..\..\..\..\Program Files\Common Files\OFX\Plugins\Reframe360Plugin.ofx.bundle\Contents\Resources" mkdir "..\..\..\..\..\..\..\Program Files\Common Files\OFX\Plugins\Reframe360Plugin.ofx.bundle\Contents\Resources"
-         if not exist "..\..\..\..\..\..\..\Program Files\Common Files\OFX\Plugins\Reframe360Plugin.ofx.bundle\Contents\Win64" mkdir "..\..\..\..\..\..\..\Program Files\Common Files\OFX\Plugins\Reframe360Plugin.ofx.bundle\Contents\Win64"
-         copy /Y "C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX\Reframe360\..\..\..\..\..\..\..\Program Files\Common Files\OFX\Plugins\Reframe360.dll" /B "..\..\..\..\..\..\..\Program Files\Common Files\OFX\Plugins\Reframe360Plugin.ofx.bundle\Contents\Win64\Reframe360Plugin.ofx" /B
-         :VCEnd
-                 1 Datei(en) kopiert.
-     1>Done Building Project "C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX\Reframe360\Reframe360.vcxproj" (Build target(s)).
-
-Build succeeded.
-
-Time Elapsed 00:00:04.60
+﻿  ['./HardcodeKernel.py', 'Reframe360CLKernel', 'Reframe360CLKernel.cl']
+  Building hardcoded OpenCL kernel in c string
+  HHHHReframe360CLKernel.cl
+  Compiling CUDA source file Reframe360CudaKernel.cu...
+  
+  C:\Users\RLEMEILL\dev\reframe360XL>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29910\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include"     --keep-dir x64\Release  -maxrregcount=0  --machine 64 --compile -cudart static    -DWIN32 -DNDEBUG -D_WINDOWS -D_USRDLL -D_WINDLL -D_UNICODE -DUNICODE -Xcompiler "/EHsc /W3 /nologo /O2 /Fdx64\Release\vc142.pdb /FS   /MD " -o x64\Release\Reframe360CudaKernel.cu.obj "C:\Users\RLEMEILL\dev\reframe360XL\Reframe360CudaKernel.cu" 
+  Reframe360CudaKernel.cu
+  ofxsCore.cpp
+  ofxsImageEffect.cpp
+C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX\Support\Library\ofxsImageEffect.cpp(2857,52): warning C4101: 'e' : variable locale non référencée
+C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX\Support\Library\ofxsImageEffect.cpp(2866,59): warning C4101: 'e' : variable locale non référencée
+C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX\Support\Library\ofxsImageEffect.cpp(2888,36): warning C4101: 'e' : variable locale non référencée
+  ofxsInteract.cpp
+  ofxsLog.cpp
+C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX\Support\Library\ofxsLog.cpp(62,37): warning C4996: 'getenv': This function or variable may be unsafe. Consider using _dupenv_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  ofxsMultiThread.cpp
+  ofxsParams.cpp
+  ofxsProperty.cpp
+  ofxsPropertyValidation.cpp
+  KernelDebugHelper.cpp
+  Reframe360.cpp
+  reframe360CLKernel.cpp
+     Création de la bibliothèque C:\Users\RLEMEILL\dev\reframe360XL\x64\Release\Reframe360.lib et de l'objet C:\Users\RLEMEILL\dev\reframe360XL\x64\Release\Reframe360.exp
+  Génération de code en cours
+  Previous IPDB not found, fall back to full compilation.
+  All 2089 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Fin de la génération du code
+  Reframe360.vcxproj -> C:\Users\RLEMEILL\dev\reframe360XL\x64\Release\Reframe360.dll
+  Creating bundle...
+          1 fichier(s) copié(s).

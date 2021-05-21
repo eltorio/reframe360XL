@@ -1,9 +1,7 @@
-//
-//  Reframe360Kernel.metal
-//  Reframe360Kernel
-//
-//  Created by Ronan LE MEILLAT on 19/04/2021.
-//
+/*
+* Copyright (c) 2019-2021  Ronan LE MEILLAT, Stefan SIETZEN, Sylvain GRAVEL
+* License Apache Software License 2.0
+*/
 
 #include <metal_stdlib>
 #include <metal_types>
