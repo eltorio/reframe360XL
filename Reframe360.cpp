@@ -6,7 +6,7 @@
 #define kPluginName "Reframe360 XL"
 #define kPluginGrouping "Reframe360 XL"
 #define kPluginDescription "Lets you animate a virtual camera in your 360 footage."
-#define kPluginIdentifier "net.lerondpoint.Reframe360XLPlugin"
+#define kPluginIdentifier "io.github.eltorio.Reframe360XLPlugin"
 #define kPluginVersionMajor 1
 #define kPluginVersionMinor 0
 

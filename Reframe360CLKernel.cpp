@@ -14,7 +14,7 @@
 #include <CL/cl.h>
 #endif
 
-#include "OpenCLKernel.h"
+#include "Reframe360CLKernel.h"
 #include "KernelDebugHelper.h"
 
 #define MAX_SOURCE_SIZE (0x100000)

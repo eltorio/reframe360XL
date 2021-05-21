@@ -19,9 +19,9 @@ else
 	LDFLAGS = -bundle -fvisibility=hidden -F/Library/Frameworks -framework OpenCL -framework Metal -framework AppKit
 	BUNDLE_DIR = Reframe360.ofx.bundle/Contents/MacOS/
 	METAL_OBJ = Reframe360Kernel.o
-	OPENCL_OBJ = OpenCLKernel.o
+	OPENCL_OBJ = Reframe360CLKernel.o
 	METAL_ARM_OBJ = Reframe360Kernel-arm.o
-	OPENCL_ARM_OBJ = OpenCLKernel-arm.o
+	OPENCL_ARM_OBJ = Reframe360CLKernel-arm.o
 	APPLE86_64_FLAG =  -target x86_64-apple-macos10.12
 	APPLEARM64_FLAG =  -target arm64-apple-macos11
 endif
@@ -41,14 +41,14 @@ Reframe360Kernel.o: Reframe360Kernel.mm
 	python metal2string.py Reframe360Kernel.metal Reframe360Kernel.h
 	$(CXX) $(APPLE86_64_FLAG) -c $< $(CXXFLAGS)
 
-OpenCLKernel.o: OpenCLKernel.h OpenCLKernel.cpp
-	$(CXX) $(APPLE86_64_FLAG) -c OpenCLKernel.cpp $(CXXFLAGS) -o OpenCLKernel.o
+Reframe360CLKernel.o: Reframe360CLKernel.h Reframe360CLKernel.cpp
+	$(CXX) $(APPLE86_64_FLAG) -c Reframe360CLKernel.cpp $(CXXFLAGS) -o Reframe360CLKernel.o
 
 KernelDebugHelper.o: KernelDebugHelper.cpp
 	$(CXX) $(APPLE86_64_FLAG)  -c "$<" $(CXXFLAGS) -o $@
 
-OpenCLKernel.h: Reframe360Kernel.cl
-	python ./HardcodeKernel.py OpenCLKernel Reframe360Kernel.cl
+Reframe360CLKernel.h: Reframe360CLKernel.cl
+	python ./HardcodeKernel.py Reframe360CLKernel Reframe360CLKernel.cl
 
 ofxsCore.o: $(BMDOFXDEVPATH)/Support/Library/ofxsCore.cpp
 	$(CXX) $(APPLE86_64_FLAG) -c "$<" $(CXXFLAGS)
@@ -89,8 +89,8 @@ Reframe360Kernel-arm.o: Reframe360Kernel.mm
 KernelDebugHelper-arm.o: KernelDebugHelper.cpp
 	$(CXX) $(APPLEARM64_FLAG)  -c "$<" $(CXXFLAGS) -o $@
 
-OpenCLKernel-arm.o: OpenCLKernel.h OpenCLKernel.cpp
-	$(CXX) $(APPLEARM64_FLAG) -c OpenCLKernel.cpp $(CXXFLAGS) -o OpenCLKernel-arm.o
+Reframe360CLKernel-arm.o: Reframe360CLKernel.h Reframe360CLKernel.cpp
+	$(CXX) $(APPLEARM64_FLAG) -c Reframe360CLKernel.cpp $(CXXFLAGS) -o Reframe360CLKernel-arm.o
 	
 ofxsCore-arm.o: $(BMDOFXDEVPATH)/Support/Library/ofxsCore.cpp
 	$(CXX) $(APPLEARM64_FLAG) -c "$<" $(CXXFLAGS) -o $@
