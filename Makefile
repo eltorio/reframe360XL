@@ -31,7 +31,7 @@ Reframe360.ofx:  Reframe360.o $(OPENCL_OBJ) $(CUDA_OBJ) $(METAL_OBJ) KernelDebug
 	mkdir -p $(BUNDLE_DIR)
 	cp Reframe360.ofx $(BUNDLE_DIR)
 
-Reframe360CudaKernel.o: Refrale360CudaKernel.cu
+Reframe360CudaKernel.o: Reframe360CudaKernel.cu
 	${NVCC} -c $< $(NVCCFLAGS)
 
 Reframe360.o: Reframe360.cpp
@@ -150,9 +150,9 @@ install: bundle Reframe360.ofx Reframe360-arm.ofx
 	rm -rf /Library/OFX/Plugins/Reframe360.ofx.bundle
 	cp -a Reframe360.ofx.bundle /Library/OFX/Plugins/
 else
-bundle: MaxToEquirectPlugin.ofx
+bundle: Reframe360.ofx
 	mkdir -p $(BUNDLE_DIR)
-	cp MReframe360.ofx $(BUNDLE_DIR)/Reframe360.ofx
+	cp Reframe360.ofx $(BUNDLE_DIR)/Reframe360.ofx
 	
 install: bundle Reframe360.ofx
 	rm -rf /usr/OFX/Plugins/Reframe360.ofx
