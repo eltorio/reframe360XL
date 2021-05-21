@@ -114,3 +114,4 @@ ffmpeg -y -i "$FILE" \
 # Sample DaVinci Resolve 17.2 studio project
 * Just restore the project archive Reframe360XL-GoProMax-test.dra from the repository for testing a sample GoPro Max to your Resolve database
 * It contains only 2 clips of 15s, they were generated from a still taken from my GoPro Max at take off with my daughter front of the mont Blanc in the Alps.
+* [Screenshot](https://github.com/eltorio/reframe360XL/blob/master/Reframe360XL-GoProMax-test.dra/MediaFiles/screenshot.png)
