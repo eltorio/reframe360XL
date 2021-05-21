@@ -1,3 +1,8 @@
+/*
+* Copyright (c) 2019-2021  Ronan LE MEILLAT, Stefan SIETZEN, Sylvain GRAVEL
+* License Apache Software License 2.0
+*/
+
 #include "Reframe360.h"
 #include "ofxsImageEffect.h"
 #include "ofxsMultiThread.h"
@@ -120,7 +125,7 @@ void matMul(const float* y, const float* p, float** outmat)
 
 // There is no CUDA on MacOS
 #ifndef __APPLE__
-extern void RunCudaKernel(int p_inputFormat, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear,
+extern void RunCudaKernel(void* p_Stream, int p_inputFormat, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear,
                           const float* p_Input, float* p_Output, const float* p_RotMat, int p_Samples, bool p_Bilinear);
 
 void ImageScaler::processImagesCUDA()
@@ -132,7 +137,7 @@ void ImageScaler::processImagesCUDA()
     float* input = static_cast<float*>(_srcImg->getPixelData());
     float* output = static_cast<float*>(_dstImg->getPixelData());
 
-    RunCudaKernel(_inputFormat, width, height, _fov, _tinyplanet, _rectilinear, input, output, _rotMat, _samples, _bilinear);
+    RunCudaKernel(_pCudaStream, _inputFormat, width, height, _fov, _tinyplanet, _rectilinear, input, output, _rotMat, _samples, _bilinear);
 }
 #endif
 

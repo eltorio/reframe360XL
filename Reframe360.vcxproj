@@ -44,14 +44,14 @@
     <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>C:\Program Files\Common Files\OFX\Plugins\Reframe360</OutDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX/Support/Plugins/include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CUDA_INC_PATH);../GLM;C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX/OpenFX-1.4/include;C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX/Support/include;C:\ProgramData\NVIDIA Corporation\CUDA Samples\v11.2\common\inc\;C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX\glm</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(CUDA_LIB_PATH);$(AMDAPPSDKROOT)/lib/x86_64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>C:\Program Files\Common Files\OFX\Plugins\Reframe360</OutDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX/Support/Plugins/include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(CUDA_INC_PATH);../GLM;C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX/OpenFX-1.4/include;C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX/Support/include;C:\ProgramData\NVIDIA Corporation\CUDA Samples\v11.2\common\inc\;C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX\glm</IncludePath>
@@ -59,7 +59,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <PreBuildEvent>
-      <Command>pre_build.bat</Command>
+      <Command>python ./HardcodeKernel.py Reframe360CLKernel Reframe360CLKernel.cl</Command>
     </PreBuildEvent>
     <Midl>
       <TargetEnvironment>X64</TargetEnvironment>
@@ -83,9 +83,10 @@
     </Link>
     <PostBuildEvent>
       <Message>Creating bundle...</Message>
-      <Command>if not exist "$(OutDir)Reframe360Plugin.ofx.bundle\Contents\Resources" mkdir "$(OutDir)Reframe360Plugin.ofx.bundle\Contents\Resources"
-if not exist "$(OutDir)Reframe360Plugin.ofx.bundle\Contents\Win64" mkdir "$(OutDir)Reframe360Plugin.ofx.bundle\Contents\Win64"
-copy /Y "$(TargetPath)" /B "$(OutDir)Reframe360Plugin.ofx.bundle\Contents\Win64\Reframe360Plugin.ofx" /B</Command>
+      <Command>if not exist "Reframe360.ofx.bundle\Contents\Resources" mkdir "Reframe360.ofx.bundle\Contents\Resources"
+if not exist "Reframe360.ofx.bundle\Contents\Win64" mkdir "Reframe360.ofx.bundle\Contents\Win64"
+copy /Y "$(TargetPath)" /B "Reframe360.ofx.bundle\Contents\Win64\Reframe360.ofx" /B
+tar.exe -a -c -f Reframe360.ofx.bundle.zip Reframe360.ofx.bundle</Command>
     </PostBuildEvent>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
@@ -113,15 +114,16 @@ copy /Y "$(TargetPath)" /B "$(OutDir)Reframe360Plugin.ofx.bundle\Contents\Win64\
     </Link>
     <PostBuildEvent>
       <Message>Creating bundle...</Message>
-      <Command>if not exist "$(OutDir)Reframe360Plugin.ofx.bundle\Contents\Resources" mkdir "$(OutDir)Reframe360Plugin.ofx.bundle\Contents\Resources"
-if not exist "$(OutDir)Reframe360Plugin.ofx.bundle\Contents\Win64" mkdir "$(OutDir)Reframe360Plugin.ofx.bundle\Contents\Win64"
-copy /Y "$(TargetPath)" /B "$(OutDir)Reframe360Plugin.ofx.bundle\Contents\Win64\Reframe360Plugin.ofx" /B</Command>
+      <Command>if not exist "Reframe360.ofx.bundle\Contents\Resources" mkdir "Reframe360.ofx.bundle\Contents\Resources"
+if not exist "Reframe360.ofx.bundle\Contents\Win64" mkdir "Reframe360.ofx.bundle\Contents\Win64"
+copy /Y "$(TargetPath)" /B "Reframe360.ofx.bundle\Contents\Win64\Reframe360.ofx" /B
+tar.exe -a -c -f Reframe360.ofx.bundle.zip Reframe360.ofx.bundle</Command>
     </PostBuildEvent>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
     </CudaCompile>
     <PreBuildEvent>
-      <Command>pre_build.bat</Command>
+      <Command>python ./HardcodeKernel.py Reframe360CLKernel Reframe360CLKernel.cl</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -133,20 +135,24 @@ copy /Y "$(TargetPath)" /B "$(OutDir)Reframe360Plugin.ofx.bundle\Contents\Win64\
     <ClCompile Include="C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX\Support\Library\ofxsParams.cpp" />
     <ClCompile Include="C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX\Support\Library\ofxsProperty.cpp" />
     <ClCompile Include="C:\ProgramData\Blackmagic Design\DaVinci Resolve\Support\Developer\OpenFX\Support\Library\ofxsPropertyValidation.cpp" />
+    <ClCompile Include="KernelDebugHelper.cpp" />
     <ClCompile Include="Reframe360.cpp" />
-    <ClCompile Include="OpenCLKernel.cpp" />
+    <ClCompile Include="reframe360CLKernel.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="CudaKernel.cu" />
+    <CudaCompile Include="Reframe360CudaKernel.cu" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Reframe360Kernel.cl">
+    <None Include="Reframe360CLKernel.cl">
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="Reframe360Kernel.metal" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\OpenFX-1.3\include\ofxProperty.h" />
+    <ClInclude Include="helper_math.h" />
+    <ClInclude Include="KernelDebugHelper.h" />
     <ClInclude Include="Reframe360.h" />
     <ClInclude Include="MathUtil.h" />
     <ClInclude Include="resource.h" />
