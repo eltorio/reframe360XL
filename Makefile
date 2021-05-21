@@ -12,8 +12,8 @@ ifeq ($(UNAME_SYSTEM), Linux)
 	NVCCFLAGS = --compiler-options="-fPIC"
 	LDFLAGS = -shared -fvisibility=hidden -L${CUDAPATH}/lib64 -lcuda -lcudart
 	BUNDLE_DIR = Reframe360.ofx.bundle/Contents/Linux-x86-64/
-	CUDA_OBJ =  CudaKernel.o
-	OPENCL_OBJ = OpenCLKernel.o
+	CUDA_OBJ =  Reframe360CudaKernel.o
+	OPENCL_OBJ = Reframe360CLKernel.o
 else
 	BMDOFXDEVPATH = /Library/Application\ Support/Blackmagic\ Design/DaVinci\ Resolve/Developer/OpenFX
 	LDFLAGS = -bundle -fvisibility=hidden -F/Library/Frameworks -framework OpenCL -framework Metal -framework AppKit
@@ -31,7 +31,7 @@ Reframe360.ofx:  Reframe360.o $(OPENCL_OBJ) $(CUDA_OBJ) $(METAL_OBJ) KernelDebug
 	mkdir -p $(BUNDLE_DIR)
 	cp Reframe360.ofx $(BUNDLE_DIR)
 
-CudaKernel.o: CudaKernel.cu
+Reframe360CudaKernel.o: Refrale360CudaKernel.cu
 	${NVCC} -c $< $(NVCCFLAGS)
 
 Reframe360.o: Reframe360.cpp
@@ -124,40 +124,38 @@ Reframe360Kernel.h: Reframe360Kernel.metal
 	mkdir -p $(BUNDLE_DIR)
 	cp $@ $(BUNDLE_DIR)
 
-macos-bin: install-universal
-	zip -r Reframe360.ofx.bundle.zip Reframe360.ofx.bundle
-
 clean:
-	rm -f *.o *.ofx *.zip *.metallib Reframe360Kernel.h OpenCLKernel.h
-	rm -fr $(BUNDLE_DIR)
+	rm -f *.o *.ofx *.metallib Reframe360Kernel.h Reframe360CLKernel.h
+	
+dist-clean: clean
+	rm -fr Reframe360.ofx.bundle Reframe360-universal.ofx Reframe360.ofx Reframe360-arm.ofx
 
+zip: bundle
+	zip -r Reframe360.ofx.bundle.zip Reframe360.ofx.bundle
+	
 ifeq ($(UNAME_SYSTEM), Darwin)
 .DEFAULT_GOAL := darwin
-
-.PHONY: darwin
-darwin: clean install-universal macos-bin
-
-get-LRP-sgravel-win-binary:
-	curl -L  https://github.com/LRP-sgravel/reframe360XL/blob/master/Reframe360XL_Win.zip?raw=true > Reframe360Plugin.ofx.bundle.Win.zip
-	unzip -u Reframe360Plugin.ofx.bundle.Win.zip
-	cp -a Reframe360Plugin.ofx.bundle/Contents/Win64 Reframe360.ofx.bundle/Contents/
-	mv Reframe360.ofx.bundle/Contents/Win64/Reframe360Plugin.ofx Reframe360.ofx.bundle/Contents/Win64/Reframe360.ofx
-	rm -rf Reframe360Plugin.ofx.bundle
-	rm Reframe360Plugin.ofx.bundle.Win.zip
 	
-install: Reframe360.ofx
-	rm -rf /Library/OFX/Plugins/Reframe360.ofx.bundle
-	cp -a Reframe360.ofx.bundle /Library/OFX/Plugins/
+.PHONY: darwin
+darwin: clean zip install
 
-install-universal: Reframe360.ofx Reframe360-arm.ofx get-LRP-sgravel-win-binary
+bundle: Reframe360.ofx Reframe360-arm.ofx
+	mkdir -p $(BUNDLE_DIR)
 	lipo -create -output Reframe360-universal.ofx Reframe360.ofx Reframe360-arm.ofx
 	mkdir -p $(BUNDLE_DIR)
+	cp Reframe360-universal.ofx $(BUNDLE_DIR)/Reframe360.ofx
+	
+install: bundle Reframe360.ofx Reframe360-arm.ofx
 	cp Reframe360-universal.ofx $(BUNDLE_DIR)/Reframe360.ofx
 	rm -rf /Library/OFX/Plugins/Reframe360.ofx.bundle
 	cp -a Reframe360.ofx.bundle /Library/OFX/Plugins/
 else
-install: Reframe360.ofx
-	rm -rf /usr/OFX/Plugins/Reframe360.ofx.bundle
+bundle: MaxToEquirectPlugin.ofx
+	mkdir -p $(BUNDLE_DIR)
+	cp MReframe360.ofx $(BUNDLE_DIR)/Reframe360.ofx
+	
+install: bundle Reframe360.ofx
+	rm -rf /usr/OFX/Plugins/Reframe360.ofx
 	mkdir -p /usr/OFX/Plugins/
-	cp -a Reframe360.ofx.bundle /usr/OFX/Plugins/
+	cp -a Reframe360.ofx /usr/OFX/Plugins/
 endif

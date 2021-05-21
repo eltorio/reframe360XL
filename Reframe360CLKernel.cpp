@@ -83,7 +83,7 @@ static HMODULE GetThisDllHandle()
 }
 #endif
 
-void RunOpenCLKernel(void* p_CmdQ, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, const float* p_Input, float* p_Output, float* p_RotMat, int p_Samples, bool p_Bilinear)
+void RunOpenCLKernel(void* p_CmdQ, int p_inputFormat, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, const float* p_Input, float* p_Output, float* p_RotMat, int p_Samples, bool p_Bilinear)
 {
     cl_int error;
 
@@ -155,12 +155,13 @@ void RunOpenCLKernel(void* p_CmdQ, int p_Width, int p_Height, float* p_Fov, floa
 
 	int bilinear(p_Bilinear ? 1 : 0);
 
-    ComputePrintDebugInformations("OpenCL",p_Width, p_Height, p_Fov, p_Tinyplanet, p_Rectilinear, p_RotMat, p_Samples, p_Bilinear);
+    ComputePrintDebugInformations("OpenCL",p_inputFormat, p_Width, p_Height, p_Fov, p_Tinyplanet, p_Rectilinear, p_RotMat, p_Samples, p_Bilinear);
     
     locker.Unlock();
     int count = 0;
 
-    error  = clSetKernelArg(kernel, count++, sizeof(int), &p_Width);
+    error  = clSetKernelArg(kernel, count++, sizeof(int), &p_inputFormat);
+    error |= clSetKernelArg(kernel, count++, sizeof(int), &p_Width);
 	error |= clSetKernelArg(kernel, count++, sizeof(int), &p_Height);
 
 	cl_mem fov_buf = clCreateBuffer(clContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(float)*p_Samples, p_Fov, &error);

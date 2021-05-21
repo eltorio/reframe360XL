@@ -1,5 +1,214 @@
 const char *KernelSource = "\n" \
-"#define PI 3.1415926535897932384626433832795\n" \
+"#define OVERLAP 64\n" \
+"#define CUT 688\n" \
+"#define BASESIZE 4096 //OVERLAP and CUT are based on this size\n" \
+"\n" \
+"enum Faces {\n" \
+"TOP_LEFT,\n" \
+"TOP_MIDDLE,\n" \
+"TOP_RIGHT,\n" \
+"BOTTOM_LEFT,\n" \
+"BOTTOM_MIDDLE,\n" \
+"BOTTOM_RIGHT,\n" \
+"NB_FACES,\n" \
+"};\n" \
+"\n" \
+"enum Direction {\n" \
+"RIGHT,\n" \
+"LEFT,\n" \
+"UP,\n" \
+"DOWN,\n" \
+"FRONT,\n" \
+"BACK,\n" \
+"NB_DIRECTIONS,\n" \
+"};\n" \
+"\n" \
+"enum Rotation {\n" \
+"ROT_0,\n" \
+"ROT_90,\n" \
+"ROT_180,\n" \
+"ROT_270,\n" \
+"NB_ROTATIONS,\n" \
+"};\n" \
+"\n" \
+"enum INPUT_FORMAT {\n" \
+"EQUIRECTANGULAR,\n" \
+"GOPRO_MAX,\n" \
+"EQUIANGULAR_CUBEMAP,\n" \
+"NB_INPUT_FORMAT,\n" \
+"};\n" \
+"\n" \
+"float2 rotate_cube_face(float2 uv, int rotation);\n" \
+"int2 transpose_gopromax_overlap(int2 xy, int2 dim);\n" \
+"float3 equirect_to_xyz(int2 xy,int2 size);\n" \
+"float2 xyz_to_cube(float3 xyz, int *direction, int *face);\n" \
+"float2 xyz_to_eac(float3 xyz, int2 size);\n" \
+"\n" \
+"float2 rotate_cube_face(float2 uv, int rotation)\n" \
+"{\n" \
+"float2 ret_uv;\n" \
+"\n" \
+"switch (rotation) {\n" \
+"case ROT_0:\n" \
+"ret_uv = uv;\n" \
+"break;\n" \
+"case ROT_90:\n" \
+"ret_uv.x = -uv.y;\n" \
+"ret_uv.y =  uv.x;\n" \
+"break;\n" \
+"case ROT_180:\n" \
+"ret_uv.x = -uv.x;\n" \
+"ret_uv.y = -uv.y;\n" \
+"break;\n" \
+"case ROT_270:\n" \
+"ret_uv.x =  uv.y;\n" \
+"ret_uv.y =  -uv.x;\n" \
+"break;\n" \
+"}\n" \
+"return ret_uv;\n" \
+"}\n" \
+"\n" \
+"float3 equirect_to_xyz(int2 xy,int2 size)\n" \
+"{\n" \
+"float3 xyz;\n" \
+"float phi   = ((2.f * ((float)xy.x) + 0.5f) / ((float)size.x)  - 1.f) * M_PI ;\n" \
+"float theta = ((2.f * ((float)xy.y) + 0.5f) / ((float)size.y) - 1.f) * M_PI_2;\n" \
+"\n" \
+"xyz.x = cos(theta) * sin(phi);\n" \
+"xyz.y = sin(theta);\n" \
+"xyz.z = cos(theta) * cos(phi);\n" \
+"\n" \
+"return xyz;\n" \
+"}\n" \
+"\n" \
+"float2 xyz_to_cube(float3 xyz, int *direction, int *face)\n" \
+"{\n" \
+"float phi   = atan2(xyz.x, xyz.z);\n" \
+"float theta = asin(xyz.y);\n" \
+"float phi_norm, theta_threshold;\n" \
+"int face_rotation;\n" \
+"float2 uv;\n" \
+"//int direction;\n" \
+"\n" \
+"if (phi >= -M_PI_4 && phi < M_PI_4) {\n" \
+"*direction = FRONT;\n" \
+"phi_norm = phi;\n" \
+"} else if (phi >= -(M_PI_2 + M_PI_4) && phi < -M_PI_4) {\n" \
+"*direction = LEFT;\n" \
+"phi_norm = phi + M_PI_2;\n" \
+"} else if (phi >= M_PI_4 && phi < M_PI_2 + M_PI_4) {\n" \
+"*direction = RIGHT;\n" \
+"phi_norm = phi - M_PI_2;\n" \
+"} else {\n" \
+"*direction = BACK;\n" \
+"phi_norm = phi + ((phi > 0.f) ? -M_PI : M_PI);\n" \
+"}\n" \
+"\n" \
+"theta_threshold = atan(cos(phi_norm));\n" \
+"if (theta > theta_threshold) {\n" \
+"*direction = DOWN;\n" \
+"} else if (theta < -theta_threshold) {\n" \
+"*direction = UP;\n" \
+"}\n" \
+"\n" \
+"theta_threshold = atan(cos(phi_norm));\n" \
+"if (theta > theta_threshold) {\n" \
+"*direction = DOWN;\n" \
+"} else if (theta < -theta_threshold) {\n" \
+"*direction = UP;\n" \
+"}\n" \
+"\n" \
+"switch (*direction) {\n" \
+"case RIGHT:\n" \
+"uv.x = -xyz.z / xyz.x;\n" \
+"uv.y =  xyz.y / xyz.x;\n" \
+"*face = TOP_RIGHT;\n" \
+"face_rotation = ROT_0;\n" \
+"break;\n" \
+"case LEFT:\n" \
+"uv.x = -xyz.z / xyz.x;\n" \
+"uv.y = -xyz.y / xyz.x;\n" \
+"*face = TOP_LEFT;\n" \
+"face_rotation = ROT_0;\n" \
+"break;\n" \
+"case UP:\n" \
+"uv.x = -xyz.x / xyz.y;\n" \
+"uv.y = -xyz.z / xyz.y;\n" \
+"*face = BOTTOM_RIGHT;\n" \
+"face_rotation = ROT_270;\n" \
+"uv = rotate_cube_face(uv,face_rotation);\n" \
+"break;\n" \
+"case DOWN:\n" \
+"uv.x =  xyz.x / xyz.y;\n" \
+"uv.y = -xyz.z / xyz.y;\n" \
+"*face = BOTTOM_LEFT;\n" \
+"face_rotation = ROT_270;\n" \
+"uv = rotate_cube_face(uv,face_rotation);\n" \
+"break;\n" \
+"case FRONT:\n" \
+"uv.x =  xyz.x / xyz.z;\n" \
+"uv.y =  xyz.y / xyz.z;\n" \
+"*face = TOP_MIDDLE;\n" \
+"face_rotation = ROT_0;\n" \
+"break;\n" \
+"case BACK:\n" \
+"uv.x =  xyz.x / xyz.z;\n" \
+"uv.y = -xyz.y / xyz.z;\n" \
+"*face = BOTTOM_MIDDLE;\n" \
+"face_rotation = ROT_90;\n" \
+"uv = rotate_cube_face(uv,face_rotation);\n" \
+"break;\n" \
+"}\n" \
+"\n" \
+"return uv;\n" \
+"}\n" \
+"\n" \
+"float2 xyz_to_eac(float3 xyz, int2 size)\n" \
+"{\n" \
+"float pixel_pad = 2;\n" \
+"float u_pad = pixel_pad / size.x;\n" \
+"float v_pad = pixel_pad / size.y;\n" \
+"\n" \
+"int direction, face;\n" \
+"int u_face, v_face;\n" \
+"float2 uv = xyz_to_cube(xyz,&direction,&face);\n" \
+"\n" \
+"u_face = face % 3;\n" \
+"v_face = face / 3;\n" \
+"//eac expansion\n" \
+"uv.x = M_2_PI * atan(uv.x) + 0.5f;\n" \
+"uv.y = M_2_PI * atan(uv.y) + 0.5f;\n" \
+"\n" \
+"uv.x = (uv.x + u_face) * (1.f - 2.f * u_pad) / 3.f + u_pad;\n" \
+"uv.y = uv.y * (0.5f - 2.f * v_pad) + v_pad + 0.5f * v_face;\n" \
+"\n" \
+"uv.x *= size.x;\n" \
+"uv.y *= size.y;\n" \
+"\n" \
+"return uv;\n" \
+"}\n" \
+"\n" \
+"int2 transpose_gopromax_overlap(int2 xy, int2 dim)\n" \
+"{\n" \
+"int2 ret;\n" \
+"int cut = dim.x*CUT/BASESIZE;\n" \
+"int overlap = dim.x*OVERLAP/BASESIZE;\n" \
+"if (xy.x<cut)\n" \
+"{\n" \
+"ret = xy;\n" \
+"}\n" \
+"else if ((xy.x>=cut) && (xy.x< (dim.x-cut)))\n" \
+"{\n" \
+"ret.x = xy.x+overlap;\n" \
+"ret.y = xy.y;\n" \
+"}\n" \
+"else\n" \
+"{\n" \
+"ret.x = xy.x+2*overlap;\n" \
+"ret.y = xy.y;\n" \
+"}\n" \
+"return ret;\n" \
+"}\n" \
 "\n" \
 "float3 matMul(float16 rotMat, float3 invec){\n" \
 "float3 outvec;\n" \
@@ -49,7 +258,7 @@ const char *KernelSource = "\n" \
 "uv.x = longi;\n" \
 "uv.y = lat;\n" \
 "\n" \
-"float2 pitwo = { PI, PI };\n" \
+"float2 pitwo = { M_PI, M_PI };\n" \
 "uv /= pitwo;\n" \
 "uv.x /= 2.0;\n" \
 "float2 ones = { 1.0, 1.0 };\n" \
@@ -97,7 +306,7 @@ const char *KernelSource = "\n" \
 "\n" \
 "float u = length(uvxy);\n" \
 "float alpha = atan2(2.0f, u);\n" \
-"float phi = PI - 2 * alpha;\n" \
+"float phi = M_PI - 2 * alpha;\n" \
 "float z = cos(phi);\n" \
 "float x = sin(phi);\n" \
 "\n" \
@@ -146,24 +355,46 @@ const char *KernelSource = "\n" \
 "return outCol;\n" \
 "}\n" \
 "\n" \
-"__kernel void Reframe360Kernel(\n" \
+"\n" \
+"float2 get_original_coordinates(const float2 equirect_coordinates, int2 size, bool transpose)\n" \
+"{\n" \
+"int2 loc = {(int)equirect_coordinates.x, (int)equirect_coordinates.y};\n" \
+"int2 eac_size = { size.x - 2 * (size.x*OVERLAP / BASESIZE),size.y };\n" \
+"float3 xyz = equirect_to_xyz(loc, size);\n" \
+"float2 uv = xyz_to_eac(xyz, eac_size);\n" \
+"int2 xy = convert_int2(floor(uv));\n" \
+"if (transpose)\n" \
+"{\n" \
+"xy = transpose_gopromax_overlap(xy, eac_size);\n" \
+"}\n" \
+"xy.y = size.y - (xy.y +1);\n" \
+"return (float2){(float)xy.x, (float)xy.y };\n" \
+"}\n" \
+"\n" \
+"float2 get_original_gopromax_coordinates(const float2 equirect_coordinates, int2 size)\n" \
+"{\n" \
+"return get_original_coordinates(equirect_coordinates, size, true);\n" \
+"}\n" \
+"\n" \
+"__kernel void Reframe360Kernel(int p_InputFormat,\n" \
 "int p_Width, int p_Height, __global float* p_Fov, __global float* p_Tinyplanet, __global float* p_Rectilinear,\n" \
 "__global const float* p_Input, __global float* p_Output, __global float* r, int samples, int bilinear)\n" \
 "{\n" \
 "const int x = get_global_id(0);\n" \
 "const int y = get_global_id(1);\n" \
+"const int2 size = {p_Width, p_Height};\n" \
 "\n" \
 "if ((x < p_Width) && (y < p_Height)){\n" \
 "const int index = ((y * p_Width) + x) * 4;\n" \
 "\n" \
 "float4 accum_col = { 0, 0, 0, 0 };\n" \
 "\n" \
+"float2 uv = { (float)x / p_Width, (float)y / p_Height };\n" \
+"float aspect = (float)p_Width / (float)p_Height;\n" \
+"\n" \
 "for (int i = 0; i < samples; i++){\n" \
 "\n" \
 "float fov = p_Fov[i];\n" \
-"\n" \
-"float2 uv = { (float)x / p_Width, (float)y / p_Height };\n" \
-"float aspect = (float)p_Width / (float)p_Height;\n" \
 "\n" \
 "float3 dir = { 0, 0, 0 };\n" \
 "dir.x = (uv.x - 0.5)*2.0;\n" \
@@ -190,11 +421,23 @@ const char *KernelSource = "\n" \
 "\n" \
 "iuv = repairUv(iuv);\n" \
 "\n" \
-"int x_new = iuv.x * (p_Width - 1);\n" \
-"int y_new = iuv.y * (p_Height - 1);\n" \
-"\n" \
 "iuv.x *= (p_Width - 1);\n" \
 "iuv.y *= (p_Height - 1);\n" \
+"\n" \
+"//get original coordinates\n" \
+"switch (p_InputFormat) {\n" \
+"case GOPRO_MAX:\n" \
+"iuv = get_original_gopromax_coordinates(iuv,size);\n" \
+"break;\n" \
+"case EQUIANGULAR_CUBEMAP:\n" \
+"iuv = get_original_coordinates(iuv,size, false);\n" \
+"break;\n" \
+"case EQUIRECTANGULAR:\n" \
+"break;\n" \
+"}\n" \
+"\n" \
+"int x_new = iuv.x;\n" \
+"int y_new = iuv.y;\n" \
 "\n" \
 "if ((x_new < p_Width) && (y_new < p_Height))\n" \
 "{\n" \

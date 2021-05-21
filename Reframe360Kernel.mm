@@ -2,7 +2,7 @@
 #import "Reframe360Kernel.h"
 #import "KernelDebugHelper.h"
 
-void RunMetalKernel(void* p_CmdQ, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, const float* p_Input, float* p_Output,float* p_RotMat, int p_Samples,
+void RunMetalKernel(void* p_CmdQ, int p_inputFormat, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, const float* p_Input, float* p_Output,float* p_RotMat, int p_Samples,
                             bool p_Bilinear)
 {
     const char* kernelName = "Reframe360Kernel";
@@ -64,7 +64,7 @@ void RunMetalKernel(void* p_CmdQ, int p_Width, int p_Height, float* p_Fov, float
     MTLSize threadGroupCount = MTLSizeMake(exeWidth, 1, 1);
     MTLSize threadGroups     = MTLSizeMake((p_Width + exeWidth - 1)/exeWidth, p_Height, 1);
 
-    ComputePrintDebugInformations("Metal",p_Width, p_Height, p_Fov, p_Tinyplanet, p_Rectilinear, p_RotMat, p_Samples, p_Bilinear);
+    ComputePrintDebugInformations("Metal",p_inputFormat, p_Width, p_Height, p_Fov, p_Tinyplanet, p_Rectilinear, p_RotMat, p_Samples, p_Bilinear);
     [computeEncoder setBuffer:srcDeviceBuf offset: 0 atIndex: 0];
     [computeEncoder setBuffer:dstDeviceBuf offset: 0 atIndex: 8];
     [computeEncoder setBytes:&p_Width length:sizeof(int) atIndex:11];
@@ -75,6 +75,7 @@ void RunMetalKernel(void* p_CmdQ, int p_Width, int p_Height, float* p_Fov, float
     [computeEncoder setBytes:p_RotMat length:(sizeof(float[9])*p_Samples) atIndex:16];
     [computeEncoder setBytes:&p_Samples length:sizeof(int) atIndex:17];
     [computeEncoder setBytes:&p_Bilinear length:sizeof(bool) atIndex:18];
+    [computeEncoder setBytes:&p_inputFormat length:sizeof(int) atIndex:19];
     [computeEncoder dispatchThreadgroups:threadGroups threadsPerThreadgroup: threadGroupCount];
 
     [computeEncoder endEncoding];

@@ -151,11 +151,11 @@ __global__ void GainAdjustKernel(int p_Width, int p_Height, float* p_Fov, float*
 
 		float4 accum_col = {0, 0, 0, 0};
 
+        float2 uv = { (float)x / p_Width, (float)y / p_Height };
+        float aspect = (float)p_Width / (float)p_Height;
+           
 		for(int i=0; i<samples; i++){
 			float fov = p_Fov[i];
-
-		   float2 uv = { (float)x / p_Width, (float)y / p_Height };
-		   float aspect = (float)p_Width / (float)p_Height;
 
 		   float3 dir = { 0, 0, 0 };
 		   dir.x = (uv.x * 2) - 1;
@@ -211,7 +211,7 @@ __global__ void GainAdjustKernel(int p_Width, int p_Height, float* p_Fov, float*
    }
 }
 
-void RunCudaKernel(int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, const float* p_Input, float* p_Output, const float* p_RotMat, int p_Samples, bool p_Bilinear)
+void RunCudaKernel(int p_inputFormat, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, const float* p_Input, float* p_Output, const float* p_RotMat, int p_Samples, bool p_Bilinear)
 {
     dim3 threads(128, 1, 1);
     dim3 blocks(((p_Width + threads.x - 1) / threads.x), p_Height, 1);

@@ -28,6 +28,7 @@
 		ACF97EAB26579C7100E2FBB5 /* KernelDebugHelper.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = KernelDebugHelper.cpp; sourceTree = "<group>"; };
 		ACF97EAC26579CB100E2FBB5 /* Reframe360Kernel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Reframe360Kernel.h; sourceTree = "<group>"; };
 		ACF97EAD26579CB100E2FBB5 /* Reframe360CLKernel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Reframe360CLKernel.h; sourceTree = "<group>"; };
+		ACF97EAF2657CA0C00E2FBB5 /* Reframe360CudaKernel.cu */ = {isa = PBXFileReference; lastKnownFileType = text; path = Reframe360CudaKernel.cu; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -49,6 +50,7 @@
 		3DF51C611CB740BF0070CA48 = {
 			isa = PBXGroup;
 			children = (
+				ACF97EAF2657CA0C00E2FBB5 /* Reframe360CudaKernel.cu */,
 				ACF97EAD26579CB100E2FBB5 /* Reframe360CLKernel.h */,
 				ACF97EAC26579CB100E2FBB5 /* Reframe360Kernel.h */,
 				ACF97EAB26579C7100E2FBB5 /* KernelDebugHelper.cpp */,

@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include "KernelDebugHelper.h"
-void ComputePrintDebugInformations(const char *KenelType, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, float* p_RotMat, int p_Samples, bool p_Bilinear)
+void ComputePrintDebugInformations(const char *KenelType, int p_inputFormat, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, float* p_RotMat, int p_Samples, bool p_Bilinear)
 {
 #ifdef DEBUG
     const int numberOfLines = 3;
     const int numberColumns = 3;
     int row, column;
-    fprintf(stdout, "%sKernel Working for, W:%d H:%d samples:%d bilinear:%d \n",KenelType, p_Width,p_Height,p_Samples,p_Bilinear);
+    fprintf(stdout, "%sKernel Working for format:%d, W:%d H:%d samples:%d bilinear:%d \n",KenelType, p_inputFormat, p_Width,p_Height,p_Samples,p_Bilinear);
     for (int run=0;run<p_Samples;run++)
     {
         fprintf(stdout,"\tRun %d\n",run);

@@ -46,7 +46,7 @@ public:
     virtual void multiThreadProcessImages(OfxRectI p_ProcWindow);
 
     void setSrcImg(OFX::Image* p_SrcImg);
-    void setParams(float* p_RotMat, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, int p_Samples,
+    void setParams(int p_InputFormat, float* p_RotMat, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, int p_Samples,
                    bool p_Bilinear);
 
 private:
@@ -55,6 +55,7 @@ private:
     float* _fov;
     float* _tinyplanet;
     float* _rectilinear;
+    int _inputFormat;
     int _samples;
     bool _bilinear;
 };
@@ -119,7 +120,7 @@ void matMul(const float* y, const float* p, float** outmat)
 
 // There is no CUDA on MacOS
 #ifndef __APPLE__
-extern void RunCudaKernel(int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear,
+extern void RunCudaKernel(int p_inputFormat, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear,
                           const float* p_Input, float* p_Output, const float* p_RotMat, int p_Samples, bool p_Bilinear);
 
 void ImageScaler::processImagesCUDA()
@@ -131,13 +132,13 @@ void ImageScaler::processImagesCUDA()
     float* input = static_cast<float*>(_srcImg->getPixelData());
     float* output = static_cast<float*>(_dstImg->getPixelData());
 
-    RunCudaKernel(width, height, _fov, _tinyplanet, _rectilinear, input, output, _rotMat, _samples, _bilinear);
+    RunCudaKernel(_inputFormat, width, height, _fov, _tinyplanet, _rectilinear, input, output, _rotMat, _samples, _bilinear);
 }
 #endif
 
 //diasble Metal since there is not yet a metal kernel
 #if defined(__APPLE__)
-extern void RunMetalKernel(void* p_CmdQ, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, const float* p_Input, float* p_Output,float* p_RotMat, int p_Samples,
+extern void RunMetalKernel(void* p_CmdQ, int p_inputFormat, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, const float* p_Input, float* p_Output,float* p_RotMat, int p_Samples,
                             bool p_Bilinear);
 
 void ImageScaler::processImagesMetal()
@@ -149,12 +150,12 @@ void ImageScaler::processImagesMetal()
     float* input = static_cast<float*>(_srcImg->getPixelData());
     float* output = static_cast<float*>(_dstImg->getPixelData());
 
-    RunMetalKernel(_pMetalCmdQ, width, height, _fov, _tinyplanet, _rectilinear, input, output, _rotMat, _samples, _bilinear);
+    RunMetalKernel(_pMetalCmdQ, _inputFormat, width, height, _fov, _tinyplanet, _rectilinear, input, output, _rotMat, _samples, _bilinear);
 }
 #endif
 
 //#if defined(__OPENCL__)
-extern void RunOpenCLKernel(void* p_CmdQ, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet,
+extern void RunOpenCLKernel(void* p_CmdQ, int p_inputFormat, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet,
                             float* p_Rectilinear, const float* p_Input, float* p_Output, float* p_RotMat, int p_Samples,
                             bool p_Bilinear);
 
@@ -167,7 +168,7 @@ void ImageScaler::processImagesOpenCL()
     float* input = static_cast<float*>(_srcImg->getPixelData());
     float* output = static_cast<float*>(_dstImg->getPixelData());
 
-    RunOpenCLKernel(_pOpenCLCmdQ, width, height, _fov, _tinyplanet, _rectilinear, input, output, _rotMat, _samples,
+    RunOpenCLKernel(_pOpenCLCmdQ, _inputFormat, width, height, _fov, _tinyplanet, _rectilinear, input, output, _rotMat, _samples,
                     _bilinear);
 }
 //#endif
@@ -281,9 +282,10 @@ void ImageScaler::setSrcImg(OFX::Image* p_SrcImg)
     _srcImg = p_SrcImg;
 }
 
-void ImageScaler::setParams(float* p_RotMat, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, int p_Samples,
+void ImageScaler::setParams(int p_InputFormat, float* p_RotMat, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, int p_Samples,
                             bool p_Bilinear)
 {
+    _inputFormat = p_InputFormat;
     _rotMat = p_RotMat;
     _fov = p_Fov;
     _tinyplanet = p_Tinyplanet;
@@ -345,6 +347,8 @@ private:
     OFX::PushButtonParam* m_PasteButton;
     OFX::IntParam* m_CopyValue;
 
+    OFX::ChoiceParam* m_InputFormat;
+    
     OFX::IntParam* m_CameraSequence;
     OFX::ChoiceParam* m_BlendCurve;
     OFX::DoubleParam* m_Accel;
@@ -407,6 +411,8 @@ Reframe360::Reframe360(OfxImageEffectHandle p_Handle)
     m_Roll = fetchDoubleParam("main_roll");
     m_Fov = fetchDoubleParam("main_fov");
 
+    m_InputFormat = fetchChoiceParam("input_format");
+    
     m_CameraSequence = fetchIntParam("cam1");
     m_BlendCurve = fetchChoiceParam("blend_curve");
     m_Accel = fetchDoubleParam("accel");
@@ -592,6 +598,9 @@ void Reframe360::setupAndProcess(ImageScaler& p_ImageScaler, const OFX::RenderAr
           pitch2 = 1.0f, yaw2 = 1.0f, roll2 = 0.0f, fov2 = 1.0f, tinyplanet2 = 1.0f, recti2 = 0.0f,
           blend = 0.0f;
 
+    int mb_inputFormat = interpParam(m_InputFormat, p_Args, 0);
+    //fprintf(stdout, "mb_InputFormat %d \n",mb_inputFormat);
+    
     int mb_samples = (int)m_Samples->getValueAtTime(p_Args.time);
     float mb_shutter = (float)m_Shutter->getValueAtTime(p_Args.time);
     int bilinear = m_Bilinear->getValueAtTime(p_Args.time);
@@ -704,7 +713,7 @@ void Reframe360::setupAndProcess(ImageScaler& p_ImageScaler, const OFX::RenderAr
     p_ImageScaler.setRenderWindow(p_Args.renderWindow);
 
     // Set the scales
-    p_ImageScaler.setParams(rotmats, fovs, tinyplanets, rectilinears, mb_samples, bilinear);
+    p_ImageScaler.setParams(mb_inputFormat, rotmats, fovs, tinyplanets, rectilinears, mb_samples, bilinear);
 
     // Call the base class process member, this will call the derived templated process code
     p_ImageScaler.process();
@@ -908,6 +917,16 @@ void Reframe360Factory::describeInContext(OFX::ImageEffectDescriptor& p_Desc, OF
     // Make some pages and to things in
     PageParamDescriptor* page = p_Desc.definePageParam("Controls");
 
+    // Input MaxToEquirect
+    GroupParamDescriptor* inputFormatParamsGroup = p_Desc.defineGroupParam("inputFormatParams");
+    inputFormatParamsGroup->setHint("Input format Parameters");
+    inputFormatParamsGroup->setLabels("Input format Parameters", "Input format Parameters", "Input format Parameters");
+    
+    std::string inputChoices[] = {"Equirectangular", "GopPro Max", "Equiangular cubemap"}; //Order is fixed by enum INPUT_FORMAT in Reframe360.h
+    ChoiceParamDescriptor* inputFormatParam = defineChoiceParam(p_Desc, "input_format", "Input Format", "Input Format",
+                                                                inputFormatParamsGroup, 0, inputChoices, 3);
+    page->addChild(*inputFormatParam);
+    
     GroupParamDescriptor* camera1ParamsGroup = p_Desc.defineGroupParam("mainCameraParams");
     camera1ParamsGroup->setHint("Main Camera Parameters");
     camera1ParamsGroup->setLabels("Main Camera Parameters", "Main Camera Parameters", "Main Camera Parameters");

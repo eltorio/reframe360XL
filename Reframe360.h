@@ -4,6 +4,13 @@
 #define BETA_FAIL
 #define BETA_FAIL_TIME 1536316125
 
+enum INPUT_FORMAT {
+    EQUIRECTANGULAR,
+    GOPRO_MAX,
+    EQUIANGULAR_CUBEMAP,
+    NB_INPUT_FORMAT,
+};
+
 class Reframe360Factory : public OFX::PluginFactoryHelper<Reframe360Factory>
 {
 public:
