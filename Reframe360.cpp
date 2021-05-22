@@ -162,14 +162,14 @@ float2 _c_xyz_to_cube(float3 xyz, int *direction, int *face)
         uv.y = -xyz.z / xyz.y;
         *face = BOTTOM_RIGHT;
         face_rotation = ROT_270;
-        uv = rotate_cube_face(uv,face_rotation);
+        uv = _c_rotate_cube_face(uv,face_rotation);
         break;
     case DOWN:
         uv.x =  xyz.x / xyz.y;
         uv.y = -xyz.z / xyz.y;
         *face = BOTTOM_LEFT;
         face_rotation = ROT_270;
-        uv = rotate_cube_face(uv,face_rotation);
+        uv = _c_rotate_cube_face(uv,face_rotation);
         break;
     case FRONT:
         uv.x =  xyz.x / xyz.z;
@@ -182,7 +182,7 @@ float2 _c_xyz_to_cube(float3 xyz, int *direction, int *face)
         uv.y = -xyz.y / xyz.z;
         *face = BOTTOM_MIDDLE;
         face_rotation = ROT_90;
-        uv = rotate_cube_face(uv,face_rotation);
+        uv = _c_rotate_cube_face(uv,face_rotation);
         break;
     }
     
@@ -197,7 +197,7 @@ float2 _c_xyz_to_eac(float3 xyz, int2 size)
 
     int direction, face;
     int u_face, v_face;
-    float2 uv = xyz_to_cube(xyz,&direction,&face);
+    float2 uv = _c_xyz_to_cube(xyz,&direction,&face);
 
     u_face = face % 3;
     v_face = face / 3;
@@ -247,13 +247,13 @@ float2 _c_get_original_coordinates(const float2 equirect_coordinates, int2 size,
 {
     int2 loc = {(int)equirect_coordinates.x, (int)equirect_coordinates.y};
     int2 eac_size = { size.x - 2 * (size.x*OVERLAP / BASESIZE),size.y };
-    float3 xyz = equirect_to_xyz(loc, size);
-    float2 uv = xyz_to_eac(xyz, eac_size);
+    float3 xyz = _c_equirect_to_xyz(loc, size);
+    float2 uv = _c_xyz_to_eac(xyz, eac_size);
     float2 ret;
     int2 xy = (int2)(roundfloat2(uv));
     if (transpose)
     {
-        xy = transpose_gopromax_overlap(xy, eac_size);
+        xy = _c_transpose_gopromax_overlap(xy, eac_size);
     }
     xy.y = size.y - (xy.y +1);
     ret.x = (float)xy.x;
