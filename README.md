@@ -32,6 +32,8 @@ make
 
 # Building on Windows 10
 * Build tested with VS2019 community edition and CUDA Toolkit 11.2
+* You need to have python installed and working for generating OpenCL and Metal embedded kernel source code
+* If you have a different CUDA Toolkit version open the vcxproj file with a text editor, search for 'CUDA 11.2' string and correct it
 
 # Building on Linux
 * Resolve only works with x86_64  
