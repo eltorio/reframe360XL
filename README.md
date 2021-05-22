@@ -45,13 +45,13 @@ make
 # Binary for Windows
 * install [bundle](https://github.com/eltorio/reframe360XL/blob/master/Reframe360.ofx.bundle.zip?raw=true)
 * uncompress it and puts it to C:\Program Files\Common Files\OFX\Plugins\
-* only CUDA is tested (OpenFX seems not working with NVidia drivers >= v465)
+* only CUDA is tested (OpenCL seems not working with NVidia drivers >= v465)
 
 # Binary for Linux 64
 * install [bundle](https://github.com/eltorio/reframe360XL/blob/master/Reframe360.ofx.bundle.zip?raw=true)
 * uncompress and put the bundle in /usr/OFX/Plugins/
 * the 3 architectures are bundled in the [same «universal» plugin](https://github.com/eltorio/reframe360XL/blob/master/Reframe360.ofx.bundle.zip?raw=true)
-* only CUDA is tested (OpenFX seems not working with NVidia drivers >= v465)
+* only CUDA is tested (OpenCL seems not working with NVidia drivers >= v465)
 
 # Trying with DaVinci Resolve 17.2 studio with standard equirectangular 360 movies
 * If you have an equirectangular movie just import it in the timeline  
