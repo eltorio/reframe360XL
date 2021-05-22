@@ -33,6 +33,9 @@ make
 # Building on Windows 10
 * Build tested with VS2019 community edition and CUDA Toolkit 11.2
 
+# Building on Linux
+* Resolve only works with x86_64  
+* Build tested with Ubuntu 20.04.2 / NVidia Cuda 11.3
 
 # Binary for MacOS
 * install [bundle](https://github.com/eltorio/reframe360XL/blob/master/Reframe360.ofx.bundle.zip?raw=true)
@@ -42,13 +45,13 @@ make
 # Binary for Windows
 * install [bundle](https://github.com/eltorio/reframe360XL/blob/master/Reframe360.ofx.bundle.zip?raw=true)
 * uncompress it and puts it to C:\Program Files\Common Files\OFX\Plugins\
-* only CUDA is tested
+* only CUDA is tested (OpenFX seems not working with NVidia drivers >= v465)
 
 # Binary for Linux 64
 * install [bundle](https://github.com/eltorio/reframe360XL/blob/master/Reframe360.ofx.bundle.zip?raw=true)
 * uncompress and put the bundle in /usr/OFX/Plugins/
 * the 3 architectures are bundled in the [same «universal» plugin](https://github.com/eltorio/reframe360XL/blob/master/Reframe360.ofx.bundle.zip?raw=true)
-* everything builds correctly but I do not have a working Resolve for testing under Linux
+* only CUDA is tested (OpenFX seems not working with NVidia drivers >= v465)
 
 # Trying with DaVinci Resolve 17.2 studio with standard equirectangular 360 movies
 * If you have an equirectangular movie just import it in the timeline  

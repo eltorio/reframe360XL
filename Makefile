@@ -155,7 +155,7 @@ bundle: Reframe360.ofx
 	cp Reframe360.ofx $(BUNDLE_DIR)/Reframe360.ofx
 	
 install: bundle Reframe360.ofx
-	rm -rf /usr/OFX/Plugins/Reframe360.ofx
+	rm -rf /usr/OFX/Plugins/Reframe360.ofx.bundle
 	mkdir -p /usr/OFX/Plugins/
-	cp -a Reframe360.ofx /usr/OFX/Plugins/
+	cp -a Reframe360.ofx.bundle /usr/OFX/Plugins/
 endif
