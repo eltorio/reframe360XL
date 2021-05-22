@@ -70,8 +70,8 @@ return ret_uv;
 float3 equirect_to_xyz(int2 xy,int2 size)
 {
     float3 xyz;
-    float phi   = ((2.f * ((float)xy.x) + 0.5f) / ((float)size.x)  - 1.f) * M_PI ;
-    float theta = ((2.f * ((float)xy.y) + 0.5f) / ((float)size.y) - 1.f) * M_PI_2;
+    float phi   = ((2.f * ((float)xy.x) + 0.5f) / ((float)size.x)  - 1.f) * M_PI_F ;
+    float theta = ((2.f * ((float)xy.y) + 0.5f) / ((float)size.y) - 1.f) * M_PI_2_F;
 
     xyz.x = cos(theta) * sin(phi);
     xyz.y = sin(theta);
@@ -89,18 +89,18 @@ float2 xyz_to_cube(float3 xyz, int *direction, int *face)
     float2 uv;
     //int direction;
 
-    if (phi >= -M_PI_4 && phi < M_PI_4) {
+    if (phi >= -M_PI_4_F && phi < M_PI_4_F) {
         *direction = FRONT;
         phi_norm = phi;
-    } else if (phi >= -(M_PI_2 + M_PI_4) && phi < -M_PI_4) {
+    } else if (phi >= -(M_PI_2_F + M_PI_4_F) && phi < -M_PI_4_F) {
         *direction = LEFT;
-        phi_norm = phi + M_PI_2;
-    } else if (phi >= M_PI_4 && phi < M_PI_2 + M_PI_4) {
+        phi_norm = phi + M_PI_2_F;
+    } else if (phi >= M_PI_4_F && phi < M_PI_2_F + M_PI_4_F) {
         *direction = RIGHT;
-        phi_norm = phi - M_PI_2;
+        phi_norm = phi - M_PI_2_F;
     } else {
         *direction = BACK;
-        phi_norm = phi + ((phi > 0.f) ? -M_PI : M_PI);
+        phi_norm = phi + ((phi > 0.f) ? -M_PI_F : M_PI_F);
     }
 
     theta_threshold = atan(cos(phi_norm));
@@ -175,8 +175,8 @@ float2 xyz_to_eac(float3 xyz, int2 size)
     u_face = face % 3;
     v_face = face / 3;
     //eac expansion
-    uv.x = M_2_PI * atan(uv.x) + 0.5f;
-    uv.y = M_2_PI * atan(uv.y) + 0.5f;
+    uv.x = M_2_PI_F * atan(uv.x) + 0.5f;
+    uv.y = M_2_PI_F * atan(uv.y) + 0.5f;
     
     uv.x = (uv.x + u_face) * (1.f - 2.f * u_pad) / 3.f + u_pad;
     uv.y = uv.y * (0.5f - 2.f * v_pad) + v_pad + 0.5f * v_face;
@@ -257,7 +257,7 @@ float2 polarCoord(float3 dir) {
 	uv.x = longi;
 	uv.y = lat;
 
-	float2 pitwo = { M_PI, M_PI };
+	float2 pitwo = { M_PI_F, M_PI_F };
 	uv /= pitwo;
 	uv.x /= 2.0;
 	float2 ones = { 1.0, 1.0 };
@@ -305,7 +305,7 @@ float3 tinyPlanetSph(float3 uv)
 
 	float u = length(uvxy);
 	float alpha = atan2(2.0f, u);
-	float phi = M_PI - 2 * alpha;
+	float phi = M_PI_F - 2 * alpha;
 	float z = cos(phi);
 	float x = sin(phi);
 

@@ -71,8 +71,8 @@ const char *KernelSource = "\n" \
 "float3 equirect_to_xyz(int2 xy,int2 size)\n" \
 "{\n" \
 "float3 xyz;\n" \
-"float phi   = ((2.f * ((float)xy.x) + 0.5f) / ((float)size.x)  - 1.f) * M_PI ;\n" \
-"float theta = ((2.f * ((float)xy.y) + 0.5f) / ((float)size.y) - 1.f) * M_PI_2;\n" \
+"float phi   = ((2.f * ((float)xy.x) + 0.5f) / ((float)size.x)  - 1.f) * M_PI_F ;\n" \
+"float theta = ((2.f * ((float)xy.y) + 0.5f) / ((float)size.y) - 1.f) * M_PI_2_F;\n" \
 "\n" \
 "xyz.x = cos(theta) * sin(phi);\n" \
 "xyz.y = sin(theta);\n" \
@@ -90,18 +90,18 @@ const char *KernelSource = "\n" \
 "float2 uv;\n" \
 "//int direction;\n" \
 "\n" \
-"if (phi >= -M_PI_4 && phi < M_PI_4) {\n" \
+"if (phi >= -M_PI_4_F && phi < M_PI_4_F) {\n" \
 "*direction = FRONT;\n" \
 "phi_norm = phi;\n" \
-"} else if (phi >= -(M_PI_2 + M_PI_4) && phi < -M_PI_4) {\n" \
+"} else if (phi >= -(M_PI_2_F + M_PI_4_F) && phi < -M_PI_4_F) {\n" \
 "*direction = LEFT;\n" \
-"phi_norm = phi + M_PI_2;\n" \
-"} else if (phi >= M_PI_4 && phi < M_PI_2 + M_PI_4) {\n" \
+"phi_norm = phi + M_PI_2_F;\n" \
+"} else if (phi >= M_PI_4_F && phi < M_PI_2_F + M_PI_4_F) {\n" \
 "*direction = RIGHT;\n" \
-"phi_norm = phi - M_PI_2;\n" \
+"phi_norm = phi - M_PI_2_F;\n" \
 "} else {\n" \
 "*direction = BACK;\n" \
-"phi_norm = phi + ((phi > 0.f) ? -M_PI : M_PI);\n" \
+"phi_norm = phi + ((phi > 0.f) ? -M_PI_F : M_PI_F);\n" \
 "}\n" \
 "\n" \
 "theta_threshold = atan(cos(phi_norm));\n" \
@@ -176,8 +176,8 @@ const char *KernelSource = "\n" \
 "u_face = face % 3;\n" \
 "v_face = face / 3;\n" \
 "//eac expansion\n" \
-"uv.x = M_2_PI * atan(uv.x) + 0.5f;\n" \
-"uv.y = M_2_PI * atan(uv.y) + 0.5f;\n" \
+"uv.x = M_2_PI_F * atan(uv.x) + 0.5f;\n" \
+"uv.y = M_2_PI_F * atan(uv.y) + 0.5f;\n" \
 "\n" \
 "uv.x = (uv.x + u_face) * (1.f - 2.f * u_pad) / 3.f + u_pad;\n" \
 "uv.y = uv.y * (0.5f - 2.f * v_pad) + v_pad + 0.5f * v_face;\n" \
@@ -258,7 +258,7 @@ const char *KernelSource = "\n" \
 "uv.x = longi;\n" \
 "uv.y = lat;\n" \
 "\n" \
-"float2 pitwo = { M_PI, M_PI };\n" \
+"float2 pitwo = { M_PI_F, M_PI_F };\n" \
 "uv /= pitwo;\n" \
 "uv.x /= 2.0;\n" \
 "float2 ones = { 1.0, 1.0 };\n" \
@@ -306,7 +306,7 @@ const char *KernelSource = "\n" \
 "\n" \
 "float u = length(uvxy);\n" \
 "float alpha = atan2(2.0f, u);\n" \
-"float phi = M_PI - 2 * alpha;\n" \
+"float phi = M_PI_F - 2 * alpha;\n" \
 "float z = cos(phi);\n" \
 "float x = sin(phi);\n" \
 "\n" \
