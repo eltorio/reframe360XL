@@ -70,6 +70,199 @@ ImageScaler::ImageScaler(OFX::ImageEffect& p_Instance)
 {
 }
 
+float2 rotate_cube_face(float2 uv, int rotation)
+{
+    float2 ret_uv;
+
+    switch (rotation) {
+    case ROT_0:
+        ret_uv = uv;
+        break;
+    case ROT_90:
+        ret_uv.x = -uv.y;
+        ret_uv.y =  uv.x;
+        break;
+    case ROT_180:
+        ret_uv.x = -uv.x;
+        ret_uv.y = -uv.y;
+        break;
+    case ROT_270:
+        ret_uv.x =  uv.y;
+        ret_uv.y =  -uv.x;
+        break;
+    }
+return ret_uv;
+}
+
+float3 equirect_to_xyz(int2 xy,int2 size)
+{
+    float3 xyz;
+    float phi   = ((2.f * ((float)xy.x) + 0.5f) / ((float)size.x)  - 1.f) * M_PI ;
+    float theta = ((2.f * ((float)xy.y) + 0.5f) / ((float)size.y) - 1.f) * M_PI_2;
+
+    xyz.x = cos(theta) * sin(phi);
+    xyz.y = sin(theta);
+    xyz.z = cos(theta) * cos(phi);
+
+    return xyz;
+}
+
+float2 xyz_to_cube(float3 xyz, int *direction, int *face)
+{
+    float phi   = atan2(xyz.x, xyz.z);
+    float theta = asin(xyz.y);
+    float phi_norm, theta_threshold;
+    int face_rotation;
+    float2 uv;
+    //int direction;
+
+    if (phi >= -M_PI_4 && phi < M_PI_4) {
+        *direction = FRONT;
+        phi_norm = phi;
+    } else if (phi >= -(M_PI_2 + M_PI_4) && phi < -M_PI_4) {
+        *direction = LEFT;
+        phi_norm = phi + M_PI_2;
+    } else if (phi >= M_PI_4 && phi < M_PI_2 + M_PI_4) {
+        *direction = RIGHT;
+        phi_norm = phi - M_PI_2;
+    } else {
+        *direction = BACK;
+        phi_norm = phi + ((phi > 0.f) ? -M_PI : M_PI);
+    }
+
+    theta_threshold = atan(cos(phi_norm));
+    if (theta > theta_threshold) {
+        *direction = DOWN;
+    } else if (theta < -theta_threshold) {
+        *direction = UP;
+    }
+    
+    theta_threshold = atan(cos(phi_norm));
+    if (theta > theta_threshold) {
+        *direction = DOWN;
+    } else if (theta < -theta_threshold) {
+        *direction = UP;
+    }
+
+    switch (*direction) {
+    case RIGHT:
+        uv.x = -xyz.z / xyz.x;
+        uv.y =  xyz.y / xyz.x;
+        *face = TOP_RIGHT;
+        face_rotation = ROT_0;
+        break;
+    case LEFT:
+        uv.x = -xyz.z / xyz.x;
+        uv.y = -xyz.y / xyz.x;
+        *face = TOP_LEFT;
+        face_rotation = ROT_0;
+        break;
+    case UP:
+        uv.x = -xyz.x / xyz.y;
+        uv.y = -xyz.z / xyz.y;
+        *face = BOTTOM_RIGHT;
+        face_rotation = ROT_270;
+        uv = rotate_cube_face(uv,face_rotation);
+        break;
+    case DOWN:
+        uv.x =  xyz.x / xyz.y;
+        uv.y = -xyz.z / xyz.y;
+        *face = BOTTOM_LEFT;
+        face_rotation = ROT_270;
+        uv = rotate_cube_face(uv,face_rotation);
+        break;
+    case FRONT:
+        uv.x =  xyz.x / xyz.z;
+        uv.y =  xyz.y / xyz.z;
+        *face = TOP_MIDDLE;
+        face_rotation = ROT_0;
+        break;
+    case BACK:
+        uv.x =  xyz.x / xyz.z;
+        uv.y = -xyz.y / xyz.z;
+        *face = BOTTOM_MIDDLE;
+        face_rotation = ROT_90;
+        uv = rotate_cube_face(uv,face_rotation);
+        break;
+    }
+    
+    return uv;
+}
+
+float2 xyz_to_eac(float3 xyz, int2 size)
+{
+    float pixel_pad = 2;
+    float u_pad = pixel_pad / size.x;
+    float v_pad = pixel_pad / size.y;
+
+    int direction, face;
+    int u_face, v_face;
+    float2 uv = xyz_to_cube(xyz,&direction,&face);
+
+    u_face = face % 3;
+    v_face = face / 3;
+    //eac expansion
+    uv.x = M_2_PI * atan(uv.x) + 0.5f;
+    uv.y = M_2_PI * atan(uv.y) + 0.5f;
+    
+    uv.x = (uv.x + u_face) * (1.f - 2.f * u_pad) / 3.f + u_pad;
+    uv.y = uv.y * (0.5f - 2.f * v_pad) + v_pad + 0.5f * v_face;
+    
+    uv.x *= size.x;
+    uv.y *= size.y;
+
+    return uv;
+}
+
+int2 transpose_gopromax_overlap(int2 xy, int2 dim)
+{
+    int2 ret;
+    int cut = dim.x*CUT/BASESIZE;
+    int overlap = dim.x*OVERLAP/BASESIZE;
+    if (xy.x<cut)
+        {
+            ret = xy;
+        }
+    else if ((xy.x>=cut) && (xy.x< (dim.x-cut)))
+        {
+            ret.x = xy.x+overlap;
+            ret.y = xy.y;
+        }
+    else
+        {
+            ret.x = xy.x+2*overlap;
+            ret.y = xy.y;
+        }
+    return ret;
+}
+
+int2 roundfloat2(float2 vect)
+{
+    int2 ret;
+    ret.x = (int)round(vect.x);
+    ret.y = (int)round(vect.y);
+    return ret;
+}
+float2 get_original_coordinates(const float2 equirect_coordinates, int2 size, int transpose)
+{
+    int2 loc = {(int)equirect_coordinates.x, (int)equirect_coordinates.y};
+    int2 eac_size = { size.x - 2 * (size.x*OVERLAP / BASESIZE),size.y };
+    float3 xyz = equirect_to_xyz(loc, size);
+    float2 uv = xyz_to_eac(xyz, eac_size);
+    int2 xy = (int2)(roundfloat2(uv));
+    if (transpose)
+    {
+        xy = transpose_gopromax_overlap(xy, eac_size);
+    }
+    xy.y = size.y - (xy.y +1);
+    return (float2){(float)xy.x, (float)xy.y };
+}
+
+float2 get_original_gopromax_coordinates(const float2 equirect_coordinates, int2 size)
+{
+    return get_original_coordinates(equirect_coordinates, size, TRUE);
+}
+
 void pitchMatrix(float pitch, float** out)
 {
     (*out)[0] = 1.0;
@@ -233,8 +426,25 @@ void ImageScaler::multiThreadProcessImages(OfxRectI p_ProcWindow)
                 iuv.x *= (width - 1);
                 iuv.y *= (height - 1);
 
-                int x_new = p_ProcWindow.x1 + (int)iuv.x;
-                int y_new = p_ProcWindow.y1 + (int)iuv.y;
+                int2 size; size.x=width;size.y=height;
+                float2 icoord,ocoord;
+                icoord.x=iuv.x;icoord.y=iuv.y;
+                //get original coordinates
+                switch (_inputFormat) {
+                        case GOPRO_MAX:
+                            ocoord = get_original_gopromax_coordinates(icoord,size);
+                            iuv.x=ocoord.x;iuv.y=ocoord.y;
+                            break;
+                        case EQUIANGULAR_CUBEMAP:
+                            ocoord = get_original_coordinates(icoord,size, FALSE);
+                            iuv.x=ocoord.x;iuv.y=ocoord.y;
+                            break;
+                        case EQUIRECTANGULAR:
+                            break;
+                }
+                
+                int x_new = (int)iuv.x;
+                int y_new = (int)iuv.y;
 
                 if ((x_new < width) && (y_new < height))
                 {

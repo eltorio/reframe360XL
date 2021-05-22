@@ -1,8 +1,44 @@
 #pragma once
 
 #include "ofxsImageEffect.h"
-#define BETA_FAIL
-#define BETA_FAIL_TIME 1536316125
+#define OVERLAP 64
+#define CUT 688
+#define BASESIZE 4096 //OVERLAP and CUT are based on this size
+#define TRUE 1
+#define FALSE 0
+
+struct int2 { int x; int y; };
+struct float2 { float x; float y; };
+struct float3 { float x; float y; float z; };
+struct float4 { float x; float y; float z; float w; };
+
+enum Faces {
+    TOP_LEFT,
+    TOP_MIDDLE,
+    TOP_RIGHT,
+    BOTTOM_LEFT,
+    BOTTOM_MIDDLE,
+    BOTTOM_RIGHT,
+    NB_FACES,
+};
+
+enum Direction {
+    RIGHT,
+    LEFT,
+    UP,
+    DOWN,
+    FRONT,
+    BACK,
+    NB_DIRECTIONS,
+};
+
+enum Rotation {
+    ROT_0,
+    ROT_90,
+    ROT_180,
+    ROT_270,
+    NB_ROTATIONS,
+};
 
 enum INPUT_FORMAT {
     EQUIRECTANGULAR,
@@ -22,3 +58,9 @@ public:
     virtual OFX::ImageEffect* createInstance(OfxImageEffectHandle p_Handle, OFX::ContextEnum p_Context);
 	std::string paramIdForCam(std::string baseName, int cam);
 };
+
+float2 rotate_cube_face(float2 uv, int rotation);
+int2 transpose_gopromax_overlap(int2 xy, int2 dim);
+float3 equirect_to_xyz(int2 xy,int2 size);
+float2 xyz_to_cube(float3 xyz, int *direction, int *face);
+float2 xyz_to_eac(float3 xyz, int2 size);
