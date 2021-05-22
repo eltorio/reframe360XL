@@ -70,7 +70,7 @@ ImageScaler::ImageScaler(OFX::ImageEffect& p_Instance)
 {
 }
 
-float2 rotate_cube_face(float2 uv, int rotation)
+float2 _c_rotate_cube_face(float2 uv, int rotation)
 {
     float2 ret_uv;
 
@@ -94,7 +94,7 @@ float2 rotate_cube_face(float2 uv, int rotation)
 return ret_uv;
 }
 
-float3 equirect_to_xyz(int2 xy,int2 size)
+float3 _c_equirect_to_xyz(int2 xy,int2 size)
 {
     float3 xyz;
     float phi   = ((2.f * ((float)xy.x) + 0.5f) / ((float)size.x)  - 1.f) * M_PI ;
@@ -107,7 +107,7 @@ float3 equirect_to_xyz(int2 xy,int2 size)
     return xyz;
 }
 
-float2 xyz_to_cube(float3 xyz, int *direction, int *face)
+float2 _c_xyz_to_cube(float3 xyz, int *direction, int *face)
 {
     float phi   = atan2(xyz.x, xyz.z);
     float theta = asin(xyz.y);
@@ -189,7 +189,7 @@ float2 xyz_to_cube(float3 xyz, int *direction, int *face)
     return uv;
 }
 
-float2 xyz_to_eac(float3 xyz, int2 size)
+float2 _c_xyz_to_eac(float3 xyz, int2 size)
 {
     float pixel_pad = 2;
     float u_pad = pixel_pad / size.x;
@@ -214,7 +214,7 @@ float2 xyz_to_eac(float3 xyz, int2 size)
     return uv;
 }
 
-int2 transpose_gopromax_overlap(int2 xy, int2 dim)
+int2 _c_transpose_gopromax_overlap(int2 xy, int2 dim)
 {
     int2 ret;
     int cut = dim.x*CUT/BASESIZE;
@@ -243,24 +243,27 @@ int2 roundfloat2(float2 vect)
     ret.y = (int)round(vect.y);
     return ret;
 }
-float2 get_original_coordinates(const float2 equirect_coordinates, int2 size, int transpose)
+float2 _c_get_original_coordinates(const float2 equirect_coordinates, int2 size, int transpose)
 {
     int2 loc = {(int)equirect_coordinates.x, (int)equirect_coordinates.y};
     int2 eac_size = { size.x - 2 * (size.x*OVERLAP / BASESIZE),size.y };
     float3 xyz = equirect_to_xyz(loc, size);
     float2 uv = xyz_to_eac(xyz, eac_size);
+    float2 ret;
     int2 xy = (int2)(roundfloat2(uv));
     if (transpose)
     {
         xy = transpose_gopromax_overlap(xy, eac_size);
     }
     xy.y = size.y - (xy.y +1);
-    return (float2){(float)xy.x, (float)xy.y };
+    ret.x = (float)xy.x;
+    ret.y = (float)xy.y;
+    return ret;
 }
 
-float2 get_original_gopromax_coordinates(const float2 equirect_coordinates, int2 size)
+float2 _c_get_original_gopromax_coordinates(const float2 equirect_coordinates, int2 size)
 {
-    return get_original_coordinates(equirect_coordinates, size, TRUE);
+    return _c_get_original_coordinates(equirect_coordinates, size, TRUE);
 }
 
 void pitchMatrix(float pitch, float** out)
@@ -432,11 +435,11 @@ void ImageScaler::multiThreadProcessImages(OfxRectI p_ProcWindow)
                 //get original coordinates
                 switch (_inputFormat) {
                         case GOPRO_MAX:
-                            ocoord = get_original_gopromax_coordinates(icoord,size);
+                            ocoord = _c_get_original_gopromax_coordinates(icoord,size);
                             iuv.x=ocoord.x;iuv.y=ocoord.y;
                             break;
                         case EQUIANGULAR_CUBEMAP:
-                            ocoord = get_original_coordinates(icoord,size, FALSE);
+                            ocoord = _c_get_original_coordinates(icoord,size, FALSE);
                             iuv.x=ocoord.x;iuv.y=ocoord.y;
                             break;
                         case EQUIRECTANGULAR:
