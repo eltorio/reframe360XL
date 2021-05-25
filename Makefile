@@ -132,7 +132,10 @@ dist-clean: clean
 
 zip: bundle
 	zip -r Reframe360.ofx.bundle.zip Reframe360.ofx.bundle
-	
+ifdef DEV_IDENTITY
+	codesign -f -s $(DEV_IDENTITY) Reframe360.ofx.bundle.zip
+endif
+
 ifeq ($(UNAME_SYSTEM), Darwin)
 .DEFAULT_GOAL := darwin
 	
@@ -140,11 +143,18 @@ ifeq ($(UNAME_SYSTEM), Darwin)
 darwin: clean zip install
 
 bundle: Reframe360.ofx Reframe360-arm.ofx
+ifdef DEV_IDENTITY
+	codesign -f -s $(DEV_IDENTITY) Reframe360.ofx 
+	codesign -f -s $(DEV_IDENTITY) Reframe360-arm.ofx
+endif
 	mkdir -p $(BUNDLE_DIR)
 	lipo -create -output Reframe360-universal.ofx Reframe360.ofx Reframe360-arm.ofx
 	mkdir -p $(BUNDLE_DIR)
 	cp Reframe360-universal.ofx $(BUNDLE_DIR)/Reframe360.ofx
-	
+ifdef DEV_IDENTITY
+	codesign -f -s $(DEV_IDENTITY) Reframe360.ofx.bundle/Contents/MacOS/Reframe360.ofx
+endif
+
 install: bundle Reframe360.ofx Reframe360-arm.ofx
 	cp Reframe360-universal.ofx $(BUNDLE_DIR)/Reframe360.ofx
 	rm -rf /Library/OFX/Plugins/Reframe360.ofx.bundle
