@@ -38,7 +38,7 @@ Reframe360.o: Reframe360.cpp
 	$(CXX) $(APPLE86_64_FLAG) -c $< $(CXXFLAGS)
 	
 Reframe360Kernel.o: Reframe360Kernel.mm
-	python metal2string.py Reframe360Kernel.metal Reframe360Kernel.h
+	python3 metal2string.py Reframe360Kernel.metal Reframe360Kernel.h
 	$(CXX) $(APPLE86_64_FLAG) -c $< $(CXXFLAGS)
 
 Reframe360CLKernel.o: Reframe360CLKernel.h Reframe360CLKernel.cpp
@@ -48,7 +48,7 @@ KernelDebugHelper.o: KernelDebugHelper.cpp
 	$(CXX) $(APPLE86_64_FLAG)  -c "$<" $(CXXFLAGS) -o $@
 
 Reframe360CLKernel.h: Reframe360CLKernel.cl
-	python ./HardcodeKernel.py Reframe360CLKernel Reframe360CLKernel.cl
+	python3 ./HardcodeKernel.py Reframe360CLKernel Reframe360CLKernel.cl
 
 ofxsCore.o: $(BMDOFXDEVPATH)/Support/Library/ofxsCore.cpp
 	$(CXX) $(APPLE86_64_FLAG) -c "$<" $(CXXFLAGS)
@@ -83,7 +83,7 @@ Reframe360-arm.o: Reframe360.cpp
 	$(CXX) $(APPLEARM64_FLAG) -c $< $(CXXFLAGS) -o $@
 
 Reframe360Kernel-arm.o: Reframe360Kernel.mm
-	python metal2string.py Reframe360Kernel.metal Reframe360Kernel.h
+	python3 metal2string.py Reframe360Kernel.metal Reframe360Kernel.h
 	$(CXX) $(APPLEARM64_FLAG) -c $< $(CXXFLAGS) -o $@
 
 KernelDebugHelper-arm.o: KernelDebugHelper.cpp
@@ -117,7 +117,7 @@ ofxsPropertyValidation-arm.o: $(BMDOFXDEVPATH)/Support/Library/ofxsPropertyValid
 	$(CXX) $(APPLEARM64_FLAG) -c "$<" $(CXXFLAGS) -o $@
 
 Reframe360Kernel.h: Reframe360Kernel.metal
-	python metal2string.py Reframe360Kernel.metal Reframe360Kernel.h
+	python3 metal2string.py Reframe360Kernel.metal Reframe360Kernel.h
 
 %.metallib: %.metal
 	xcrun -sdk macosx metal -c $< -o $@
@@ -133,7 +133,7 @@ dist-clean: clean
 zip: bundle
 	zip -r Reframe360.ofx.bundle.zip Reframe360.ofx.bundle
 ifdef DEV_IDENTITY
-	codesign -f -s $(DEV_IDENTITY) Reframe360.ofx.bundle.zip
+	codesign --force --options runtime -s "$(DEV_IDENTITY)" --deep --strict Reframe360.ofx.bundle.zip -vvv
 endif
 
 ifeq ($(UNAME_SYSTEM), Darwin)
@@ -144,16 +144,23 @@ darwin: clean zip install
 
 bundle: Reframe360.ofx Reframe360-arm.ofx
 ifdef DEV_IDENTITY
-	codesign -f -s $(DEV_IDENTITY) Reframe360.ofx 
-	codesign -f -s $(DEV_IDENTITY) Reframe360-arm.ofx
+	codesign --force --options runtime -s "$(DEV_IDENTITY)" --deep --strict Reframe360.ofx -vvv
+	codesign --force --options runtime -s "$(DEV_IDENTITY)"  --deep --strict Reframe360-arm.ofx -vvv
 endif
 	mkdir -p $(BUNDLE_DIR)
 	lipo -create -output Reframe360-universal.ofx Reframe360.ofx Reframe360-arm.ofx
 	mkdir -p $(BUNDLE_DIR)
 	cp Reframe360-universal.ofx $(BUNDLE_DIR)/Reframe360.ofx
 ifdef DEV_IDENTITY
-	codesign -f -s $(DEV_IDENTITY) Reframe360.ofx.bundle/Contents/MacOS/Reframe360.ofx
+	codesign -f -s "$(DEV_IDENTITY)" Reframe360.ofx.bundle/Contents/MacOS/Reframe360.ofx
 endif
+
+root-install:
+	cp Reframe360-universal.ofx $(BUNDLE_DIR)/Reframe360.ofx
+	sudo rm -rf /Library/OFX/Plugins/Reframe360.ofx.bundle
+	sudo mkdir -p /Library/OFX/Plugins/
+	sudo cp -a Reframe360.ofx.bundle /Library/OFX/Plugins/
+	sudo xattr -r -d com.apple.quarantine /Library/OFX/Plugins/Reframe360.ofx.bundle
 
 install: bundle Reframe360.ofx Reframe360-arm.ofx
 	cp Reframe360-universal.ofx $(BUNDLE_DIR)/Reframe360.ofx
