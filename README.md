@@ -3,7 +3,32 @@
 This plugin is an extension of the excellent Reframe360 (<http://reframe360.com/>) plugin by Stefan Sietzen.  When Stefan discontinued the project and released the source code, I got to work to add features and fix bugs and it became Reframe360 XL.  
 XL is used to point out that new features were put in place and is also a nudge to the excellent SkaterXL game.
 
-New features and bug fixes:
+## Table of Contents
+
+- [Reframe360 XL](#reframe360-xl)
+  - [Table of Contents](#table-of-contents)
+  - [New Features and Bug Fixes](#new-features-and-bug-fixes)
+  - [Requirements](#requirements)
+  - [GoPro Max import](#gopro-max-import)
+  - [Building on MacOS (Intel and Apple Silicon)](#building-on-macos-intel-and-apple-silicon)
+  - [Building on Windows 10](#building-on-windows-10)
+  - [Building on Linux](#building-on-linux)
+  - [Binary for MacOS](#binary-for-macos)
+  - [Binary for Windows](#binary-for-windows)
+  - [Binary for Linux 64](#binary-for-linux-64)
+  - [Trying with Blackmagic DaVinci Resolve 19 studio with standard equirectangular 360 movies](#trying-with-blackmagic-davinci-resolve-19-studio-with-standard-equirectangular-360-movies)
+  - [Using 360.sh for easy GoPro Max Video Processing with Reframe360 XL](#using-360sh-for-easy-gopro-max-video-processing-with-reframe360-xl)
+  - [Manual method with Blackmagic DaVinci Resolve 19 studio and GoPro Max .360 files](#manual-method-with-blackmagic-davinci-resolve-19-studio-and-gopro-max-360-files)
+    - [First divide the .360 files in two movies](#first-divide-the-360-files-in-two-movies)
+    - [Second import them in a timeline](#second-import-them-in-a-timeline)
+    - [Third create a compound clip and a new timeline](#third-create-a-compound-clip-and-a-new-timeline)
+    - [Finally apply the filter](#finally-apply-the-filter)
+  - [Sample DaVinci Resolve 17.2 studio project](#sample-davinci-resolve-172-studio-project)
+  - [Troubleshooting](#troubleshooting)
+  - [Contributing](#contributing)
+  - [License](#license)
+
+## New Features and Bug Fixes
 
 - Support GoPro Max pseudo Equiangular cubemap files
 - Support Youtube Equiangular cubemap files
@@ -12,7 +37,10 @@ New features and bug fixes:
 - Fix black dot in center of output
 - Update to latest libraries and Resolve 19
 
-Enjoy!
+## Requirements
+
+- FFmpeg must be installed on your system
+- Bash shell (standard on MacOS and Linux)
 
 ## GoPro Max import
 
@@ -88,6 +116,8 @@ sudo xattr -r -d com.apple.quarantine /Library/OFX/Plugins/Reframe360.ofx.bundle
 - Reframe
 
 ## Using 360.sh for easy GoPro Max Video Processing with Reframe360 XL
+
+The `360.sh` script is a powerful tool designed to simplify the process of preparing GoPro Max 360 videos for use with Reframe360 XL in DaVinci Resolve. It provides functions to extract front and rear videos from GoPro Max .360 files, as well as to create merged videos ready for editing. This script automates many of the manual steps previously required, significantly streamlining your workflow.  
 
 The `360.sh` script provides several functions to help process GoPro Max 360 videos for use with Reframe360 XL in DaVinci Resolve. Here's how to use these functions in a MacOS or Linux terminal:
 
@@ -204,3 +234,30 @@ ffmpeg -y -i "$FILE" \
 - Just restore the project archive Reframe360XL-GoProMax-test.dra from the repository for testing a sample GoPro Max to your Resolve database
 - It contains only 2 clips of 15s, they were generated from a still taken from my GoPro Max at take off with my daughter front of the mont Blanc in the Alps.
 ![Screenshot](https://github.com/eltorio/reframe360XL/blob/master/Reframe360XL-GoProMax-test.dra/MediaFiles/screenshot.png?raw=true)
+
+## Troubleshooting
+
+[Add common issues and their solutions here. For example:]
+
+- **Issue**: Black screen when applying the Reframe360 XL filter.
+  **Solution**: Ensure that your input format matches your video type. For GoPro Max videos, select "GoPro Max" as the Input Format.
+
+- **Issue**: FFmpeg command not found when using 360.sh.
+  **Solution**: Make sure FFmpeg is installed and in your system PATH.
+
+## Contributing
+
+Contributions to Reframe360 XL are welcome! Here's how you can contribute:
+
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature-branch`)
+3. Make your changes
+4. Commit your changes (`git commit -am 'Add some feature'`)
+5. Push to the branch (`git push origin feature-branch`)
+6. Create a new Pull Request
+
+Please ensure your code adheres to the existing style and all tests pass before submitting a pull request.
+
+## License
+
+Reframe360 XL is licensed under the Apache 2.0 License. See [LICENSE](LICENSE) for more information.
