@@ -1,7 +1,7 @@
 /*
-* Copyright (c) 2019-2021  Ronan LE MEILLAT, Stefan SIETZEN, Sylvain GRAVEL
-* License Apache Software License 2.0
-*/
+ * Copyright (c) 2019-2021  Ronan LE MEILLAT, Stefan SIETZEN, Sylvain GRAVEL
+ * License Apache Software License 2.0
+ */
 
 #include "Reframe360.h"
 #include "ofxsImageEffect.h"
@@ -23,7 +23,7 @@
 
 #define M_PI 3.14159265358979323846
 
-///GLM Imports
+/// GLM Imports
 
 #include "MathUtil.h"
 #include <ctime>
@@ -36,7 +36,7 @@
 class ImageScaler : public OFX::ImageProcessor
 {
 public:
-    explicit ImageScaler(OFX::ImageEffect& p_Instance);
+    explicit ImageScaler(OFX::ImageEffect &p_Instance);
 
 #ifndef __APPLE__
     virtual void processImagesCUDA();
@@ -50,22 +50,22 @@ public:
 
     virtual void multiThreadProcessImages(OfxRectI p_ProcWindow);
 
-    void setSrcImg(OFX::Image* p_SrcImg);
-    void setParams(int p_InputFormat, float* p_RotMat, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, int p_Samples,
+    void setSrcImg(OFX::Image *p_SrcImg);
+    void setParams(int p_InputFormat, float *p_RotMat, float *p_Fov, float *p_Tinyplanet, float *p_Rectilinear, int p_Samples,
                    bool p_Bilinear);
 
 private:
-    OFX::Image* _srcImg;
-    float* _rotMat;
-    float* _fov;
-    float* _tinyplanet;
-    float* _rectilinear;
+    OFX::Image *_srcImg;
+    float *_rotMat;
+    float *_fov;
+    float *_tinyplanet;
+    float *_rectilinear;
     int _inputFormat;
     int _samples;
     bool _bilinear;
 };
 
-ImageScaler::ImageScaler(OFX::ImageEffect& p_Instance)
+ImageScaler::ImageScaler(OFX::ImageEffect &p_Instance)
     : OFX::ImageProcessor(p_Instance)
 {
 }
@@ -74,30 +74,31 @@ float2 _c_rotate_cube_face(float2 uv, int rotation)
 {
     float2 ret_uv;
 
-    switch (rotation) {
+    switch (rotation)
+    {
     case ROT_0:
         ret_uv = uv;
         break;
     case ROT_90:
         ret_uv.x = -uv.y;
-        ret_uv.y =  uv.x;
+        ret_uv.y = uv.x;
         break;
     case ROT_180:
         ret_uv.x = -uv.x;
         ret_uv.y = -uv.y;
         break;
     case ROT_270:
-        ret_uv.x =  uv.y;
-        ret_uv.y =  -uv.x;
+        ret_uv.x = uv.y;
+        ret_uv.y = -uv.x;
         break;
     }
-return ret_uv;
+    return ret_uv;
 }
 
-float3 _c_equirect_to_xyz(int2 xy,int2 size)
+float3 _c_equirect_to_xyz(int2 xy, int2 size)
 {
     float3 xyz;
-    float phi   = ((2.f * ((float)xy.x) + 0.5f) / ((float)size.x)  - 1.f) * M_PI ;
+    float phi = ((2.f * ((float)xy.x) + 0.5f) / ((float)size.x) - 1.f) * M_PI;
     float theta = ((2.f * ((float)xy.y) + 0.5f) / ((float)size.y) - 1.f) * M_PI_2;
 
     xyz.x = cos(theta) * sin(phi);
@@ -109,45 +110,59 @@ float3 _c_equirect_to_xyz(int2 xy,int2 size)
 
 float2 _c_xyz_to_cube(float3 xyz, int *direction, int *face)
 {
-    float phi   = atan2(xyz.x, xyz.z);
+    float phi = atan2(xyz.x, xyz.z);
     float theta = asin(xyz.y);
     float phi_norm, theta_threshold;
     int face_rotation;
     float2 uv;
-    //int direction;
+    // int direction;
 
-    if (phi >= -M_PI_4 && phi < M_PI_4) {
+    if (phi >= -M_PI_4 && phi < M_PI_4)
+    {
         *direction = FRONT;
         phi_norm = phi;
-    } else if (phi >= -(M_PI_2 + M_PI_4) && phi < -M_PI_4) {
+    }
+    else if (phi >= -(M_PI_2 + M_PI_4) && phi < -M_PI_4)
+    {
         *direction = LEFT;
         phi_norm = phi + M_PI_2;
-    } else if (phi >= M_PI_4 && phi < M_PI_2 + M_PI_4) {
+    }
+    else if (phi >= M_PI_4 && phi < M_PI_2 + M_PI_4)
+    {
         *direction = RIGHT;
         phi_norm = phi - M_PI_2;
-    } else {
+    }
+    else
+    {
         *direction = BACK;
         phi_norm = phi + ((phi > 0.f) ? -M_PI : M_PI);
     }
 
     theta_threshold = atan(cos(phi_norm));
-    if (theta > theta_threshold) {
+    if (theta > theta_threshold)
+    {
         *direction = DOWN;
-    } else if (theta < -theta_threshold) {
-        *direction = UP;
     }
-    
-    theta_threshold = atan(cos(phi_norm));
-    if (theta > theta_threshold) {
-        *direction = DOWN;
-    } else if (theta < -theta_threshold) {
+    else if (theta < -theta_threshold)
+    {
         *direction = UP;
     }
 
-    switch (*direction) {
+    theta_threshold = atan(cos(phi_norm));
+    if (theta > theta_threshold)
+    {
+        *direction = DOWN;
+    }
+    else if (theta < -theta_threshold)
+    {
+        *direction = UP;
+    }
+
+    switch (*direction)
+    {
     case RIGHT:
         uv.x = -xyz.z / xyz.x;
-        uv.y =  xyz.y / xyz.x;
+        uv.y = xyz.y / xyz.x;
         *face = TOP_RIGHT;
         face_rotation = ROT_0;
         break;
@@ -162,30 +177,30 @@ float2 _c_xyz_to_cube(float3 xyz, int *direction, int *face)
         uv.y = -xyz.z / xyz.y;
         *face = BOTTOM_RIGHT;
         face_rotation = ROT_270;
-        uv = _c_rotate_cube_face(uv,face_rotation);
+        uv = _c_rotate_cube_face(uv, face_rotation);
         break;
     case DOWN:
-        uv.x =  xyz.x / xyz.y;
+        uv.x = xyz.x / xyz.y;
         uv.y = -xyz.z / xyz.y;
         *face = BOTTOM_LEFT;
         face_rotation = ROT_270;
-        uv = _c_rotate_cube_face(uv,face_rotation);
+        uv = _c_rotate_cube_face(uv, face_rotation);
         break;
     case FRONT:
-        uv.x =  xyz.x / xyz.z;
-        uv.y =  xyz.y / xyz.z;
+        uv.x = xyz.x / xyz.z;
+        uv.y = xyz.y / xyz.z;
         *face = TOP_MIDDLE;
         face_rotation = ROT_0;
         break;
     case BACK:
-        uv.x =  xyz.x / xyz.z;
+        uv.x = xyz.x / xyz.z;
         uv.y = -xyz.y / xyz.z;
         *face = BOTTOM_MIDDLE;
         face_rotation = ROT_90;
-        uv = _c_rotate_cube_face(uv,face_rotation);
+        uv = _c_rotate_cube_face(uv, face_rotation);
         break;
     }
-    
+
     return uv;
 }
 
@@ -197,17 +212,17 @@ float2 _c_xyz_to_eac(float3 xyz, int2 size)
 
     int direction, face;
     int u_face, v_face;
-    float2 uv = _c_xyz_to_cube(xyz,&direction,&face);
+    float2 uv = _c_xyz_to_cube(xyz, &direction, &face);
 
     u_face = face % 3;
     v_face = face / 3;
-    //eac expansion
+    // eac expansion
     uv.x = M_2_PI * atan(uv.x) + 0.5f;
     uv.y = M_2_PI * atan(uv.y) + 0.5f;
-    
+
     uv.x = (uv.x + u_face) * (1.f - 2.f * u_pad) / 3.f + u_pad;
     uv.y = uv.y * (0.5f - 2.f * v_pad) + v_pad + 0.5f * v_face;
-    
+
     uv.x *= size.x;
     uv.y *= size.y;
 
@@ -217,22 +232,22 @@ float2 _c_xyz_to_eac(float3 xyz, int2 size)
 int2 _c_transpose_gopromax_overlap(int2 xy, int2 dim)
 {
     int2 ret;
-    int cut = dim.x*CUT/BASESIZE;
-    int overlap = dim.x*OVERLAP/BASESIZE;
-    if (xy.x<cut)
-        {
-            ret = xy;
-        }
-    else if ((xy.x>=cut) && (xy.x< (dim.x-cut)))
-        {
-            ret.x = xy.x+overlap;
-            ret.y = xy.y;
-        }
+    int cut = dim.x * CUT / BASESIZE;
+    int overlap = dim.x * OVERLAP / BASESIZE;
+    if (xy.x < cut)
+    {
+        ret = xy;
+    }
+    else if ((xy.x >= cut) && (xy.x < (dim.x - cut)))
+    {
+        ret.x = xy.x + overlap;
+        ret.y = xy.y;
+    }
     else
-        {
-            ret.x = xy.x+2*overlap;
-            ret.y = xy.y;
-        }
+    {
+        ret.x = xy.x + 2 * overlap;
+        ret.y = xy.y;
+    }
     return ret;
 }
 
@@ -246,7 +261,7 @@ int2 roundfloat2(float2 vect)
 float2 _c_get_original_coordinates(const float2 equirect_coordinates, int2 size, int transpose)
 {
     int2 loc = {(int)equirect_coordinates.x, (int)equirect_coordinates.y};
-    int2 eac_size = { size.x - 2 * (size.x*OVERLAP / BASESIZE),size.y };
+    int2 eac_size = {size.x - 2 * (size.x * OVERLAP / BASESIZE), size.y};
     float3 xyz = _c_equirect_to_xyz(loc, size);
     float2 uv = _c_xyz_to_eac(xyz, eac_size);
     float2 ret;
@@ -255,7 +270,7 @@ float2 _c_get_original_coordinates(const float2 equirect_coordinates, int2 size,
     {
         xy = _c_transpose_gopromax_overlap(xy, eac_size);
     }
-    xy.y = size.y - (xy.y +1);
+    xy.y = size.y - (xy.y + 1);
     ret.x = (float)xy.x;
     ret.y = (float)xy.y;
     return ret;
@@ -266,7 +281,7 @@ float2 _c_get_original_gopromax_coordinates(const float2 equirect_coordinates, i
     return _c_get_original_coordinates(equirect_coordinates, size, TRUE);
 }
 
-void pitchMatrix(float pitch, float** out)
+void pitchMatrix(float pitch, float **out)
 {
     (*out)[0] = 1.0;
     (*out)[1] = 0;
@@ -279,7 +294,7 @@ void pitchMatrix(float pitch, float** out)
     (*out)[8] = cos(pitch);
 }
 
-void yawMatrix(float yaw, float** out)
+void yawMatrix(float yaw, float **out)
 {
     (*out)[0] = cos(yaw);
     (*out)[1] = 0;
@@ -292,7 +307,7 @@ void yawMatrix(float yaw, float** out)
     (*out)[8] = cos(yaw);
 }
 
-void rollMatrix(float roll, float** out)
+void rollMatrix(float roll, float **out)
 {
     (*out)[0] = cos(roll);
     (*out)[1] = -sin(roll);
@@ -305,8 +320,7 @@ void rollMatrix(float roll, float** out)
     (*out)[8] = 1.0;
 }
 
-
-void matMul(const float* y, const float* p, float** outmat)
+void matMul(const float *y, const float *p, float **outmat)
 {
     (*outmat)[0] = p[0] * y[0] + p[3] * y[1] + p[6] * y[2];
     (*outmat)[1] = p[1] * y[0] + p[4] * y[1] + p[7] * y[2];
@@ -321,59 +335,58 @@ void matMul(const float* y, const float* p, float** outmat)
 
 // There is no CUDA on MacOS
 #ifndef __APPLE__
-extern void RunCudaKernel(void* p_Stream, int p_inputFormat, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear,
-                          const float* p_Input, float* p_Output, const float* p_RotMat, int p_Samples, bool p_Bilinear);
+extern void RunCudaKernel(void *p_Stream, int p_inputFormat, int p_Width, int p_Height, float *p_Fov, float *p_Tinyplanet, float *p_Rectilinear,
+                          const float *p_Input, float *p_Output, const float *p_RotMat, int p_Samples, bool p_Bilinear);
 
 void ImageScaler::processImagesCUDA()
 {
-    const OfxRectI& bounds = _srcImg->getBounds();
+    const OfxRectI &bounds = _srcImg->getBounds();
     const int width = bounds.x2 - bounds.x1;
     const int height = bounds.y2 - bounds.y1;
 
-    float* input = static_cast<float*>(_srcImg->getPixelData());
-    float* output = static_cast<float*>(_dstImg->getPixelData());
+    float *input = static_cast<float *>(_srcImg->getPixelData());
+    float *output = static_cast<float *>(_dstImg->getPixelData());
 
     RunCudaKernel(_pCudaStream, _inputFormat, width, height, _fov, _tinyplanet, _rectilinear, input, output, _rotMat, _samples, _bilinear);
 }
 #endif
 
-//diasble Metal since there is not yet a metal kernel
+// diasble Metal since there is not yet a metal kernel
 #if defined(__APPLE__)
-extern void RunMetalKernel(void* p_CmdQ, int p_inputFormat, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, const float* p_Input, float* p_Output,float* p_RotMat, int p_Samples,
-                            bool p_Bilinear);
+extern void RunMetalKernel(void *p_CmdQ, int p_inputFormat, int p_Width, int p_Height, float *p_Fov, float *p_Tinyplanet, float *p_Rectilinear, const float *p_Input, float *p_Output, float *p_RotMat, int p_Samples,
+                           bool p_Bilinear);
 
 void ImageScaler::processImagesMetal()
 {
-    const OfxRectI& bounds = _srcImg->getBounds();
+    const OfxRectI &bounds = _srcImg->getBounds();
     const int width = bounds.x2 - bounds.x1;
     const int height = bounds.y2 - bounds.y1;
 
-    float* input = static_cast<float*>(_srcImg->getPixelData());
-    float* output = static_cast<float*>(_dstImg->getPixelData());
+    float *input = static_cast<float *>(_srcImg->getPixelData());
+    float *output = static_cast<float *>(_dstImg->getPixelData());
 
     RunMetalKernel(_pMetalCmdQ, _inputFormat, width, height, _fov, _tinyplanet, _rectilinear, input, output, _rotMat, _samples, _bilinear);
 }
 #endif
 
-//#if defined(__OPENCL__)
-extern void RunOpenCLKernel(void* p_CmdQ, int p_inputFormat, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet,
-                            float* p_Rectilinear, const float* p_Input, float* p_Output, float* p_RotMat, int p_Samples,
+// #if defined(__OPENCL__)
+extern void RunOpenCLKernel(void *p_CmdQ, int p_inputFormat, int p_Width, int p_Height, float *p_Fov, float *p_Tinyplanet,
+                            float *p_Rectilinear, const float *p_Input, float *p_Output, float *p_RotMat, int p_Samples,
                             bool p_Bilinear);
 
 void ImageScaler::processImagesOpenCL()
 {
-    const OfxRectI& bounds = _srcImg->getBounds();
+    const OfxRectI &bounds = _srcImg->getBounds();
     const int width = bounds.x2 - bounds.x1;
     const int height = bounds.y2 - bounds.y1;
 
-    float* input = static_cast<float*>(_srcImg->getPixelData());
-    float* output = static_cast<float*>(_dstImg->getPixelData());
+    float *input = static_cast<float *>(_srcImg->getPixelData());
+    float *output = static_cast<float *>(_dstImg->getPixelData());
 
     RunOpenCLKernel(_pOpenCLCmdQ, _inputFormat, width, height, _fov, _tinyplanet, _rectilinear, input, output, _rotMat, _samples,
                     _bilinear);
 }
-//#endif
-
+// #endif
 
 void ImageScaler::multiThreadProcessImages(OfxRectI p_ProcWindow)
 {
@@ -398,9 +411,10 @@ void ImageScaler::multiThreadProcessImages(OfxRectI p_ProcWindow)
 
         for (int y = p_ProcWindow.y1; y < p_ProcWindow.y2; ++y)
         {
-            if (_effect.abort()) break;
+            if (_effect.abort())
+                break;
 
-            float* dstPix = static_cast<float*>(_dstImg->getPixelAddress(p_ProcWindow.x1, y));
+            float *dstPix = static_cast<float *>(_dstImg->getPixelAddress(p_ProcWindow.x1, y));
 
             for (int x = p_ProcWindow.x1; x < p_ProcWindow.x2; ++x)
             {
@@ -429,29 +443,35 @@ void ImageScaler::multiThreadProcessImages(OfxRectI p_ProcWindow)
                 iuv.x *= (width - 1);
                 iuv.y *= (height - 1);
 
-                int2 size; size.x=width;size.y=height;
-                float2 icoord,ocoord;
-                icoord.x=iuv.x;icoord.y=iuv.y;
-                //get original coordinates
-                switch (_inputFormat) {
-                        case GOPRO_MAX:
-                            ocoord = _c_get_original_gopromax_coordinates(icoord,size);
-                            iuv.x=ocoord.x;iuv.y=ocoord.y;
-                            break;
-                        case EQUIANGULAR_CUBEMAP:
-                            ocoord = _c_get_original_coordinates(icoord,size, FALSE);
-                            iuv.x=ocoord.x;iuv.y=ocoord.y;
-                            break;
-                        case EQUIRECTANGULAR:
-                            break;
+                int2 size;
+                size.x = width;
+                size.y = height;
+                float2 icoord, ocoord;
+                icoord.x = iuv.x;
+                icoord.y = iuv.y;
+                // get original coordinates
+                switch (_inputFormat)
+                {
+                case GOPRO_MAX:
+                    ocoord = _c_get_original_gopromax_coordinates(icoord, size);
+                    iuv.x = ocoord.x;
+                    iuv.y = ocoord.y;
+                    break;
+                case EQUIANGULAR_CUBEMAP:
+                    ocoord = _c_get_original_coordinates(icoord, size, FALSE);
+                    iuv.x = ocoord.x;
+                    iuv.y = ocoord.y;
+                    break;
+                case EQUIRECTANGULAR:
+                    break;
                 }
-                
+
                 int x_new = (int)iuv.x;
                 int y_new = (int)iuv.y;
 
                 if ((x_new < width) && (y_new < height))
                 {
-                    float* srcPix = static_cast<float*>(_srcImg ? _srcImg->getPixelAddress(x_new, y_new) : 0);
+                    float *srcPix = static_cast<float *>(_srcImg ? _srcImg->getPixelAddress(x_new, y_new) : 0);
                     vec4 interpCol;
 
                     // do we have a source image to scale up
@@ -494,13 +514,12 @@ void ImageScaler::multiThreadProcessImages(OfxRectI p_ProcWindow)
     }
 }
 
-
-void ImageScaler::setSrcImg(OFX::Image* p_SrcImg)
+void ImageScaler::setSrcImg(OFX::Image *p_SrcImg)
 {
     _srcImg = p_SrcImg;
 }
 
-void ImageScaler::setParams(int p_InputFormat, float* p_RotMat, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, int p_Samples,
+void ImageScaler::setParams(int p_InputFormat, float *p_RotMat, float *p_Fov, float *p_Tinyplanet, float *p_Rectilinear, int p_Samples,
                             bool p_Bilinear)
 {
     _inputFormat = p_InputFormat;
@@ -520,16 +539,16 @@ public:
     explicit Reframe360(OfxImageEffectHandle p_Handle);
 
     /* Override the render */
-    virtual void render(const OFX::RenderArguments& p_Args);
+    virtual void render(const OFX::RenderArguments &p_Args);
 
     /* Override is identity */
-    virtual bool isIdentity(const OFX::IsIdentityArguments& p_Args, OFX::Clip*& p_IdentityClip, double& p_IdentityTime);
+    virtual bool isIdentity(const OFX::IsIdentityArguments &p_Args, OFX::Clip *&p_IdentityClip, double &p_IdentityTime);
 
     /* Override changedParam */
-    virtual void changedParam(const OFX::InstanceChangedArgs& p_Args, const std::string& p_ParamName);
+    virtual void changedParam(const OFX::InstanceChangedArgs &p_Args, const std::string &p_ParamName);
 
     /* Override changed clip */
-    virtual void changedClip(const OFX::InstanceChangedArgs& p_Args, const std::string& p_ClipName);
+    virtual void changedClip(const OFX::InstanceChangedArgs &p_Args, const std::string &p_ClipName);
 
     /* Set the enabledness of the component scale params depending on the type of input image and the state of the scaleComponents param */
     void setEnabledness() const;
@@ -540,82 +559,82 @@ public:
 
     void setHiddenParam(std::string name, int cam, double value);
 
-    template<class TParam>
-    float BlendParam(TParam* param, const OFX::RenderArguments& p_Args, float offset) const;
+    template <class TParam>
+    float BlendParam(TParam *param, const OFX::RenderArguments &p_Args, float offset) const;
 
-    float ApplyBlendCurve(float blend, const OFX::RenderArguments& p_Args, float offset) const;
-    float BlendFromAlpha(float alpha, const OFX::RenderArguments& p_Args, float offset) const;
+    float ApplyBlendCurve(float blend, const OFX::RenderArguments &p_Args, float offset) const;
+    float BlendFromAlpha(float alpha, const OFX::RenderArguments &p_Args, float offset) const;
 
     /* Set up and run a processor */
-    void setupAndProcess(ImageScaler& p_ImageScaler, const OFX::RenderArguments& p_Args);
+    void setupAndProcess(ImageScaler &p_ImageScaler, const OFX::RenderArguments &p_Args);
 
 private:
     // Does not own the following pointers
-    OFX::Clip* m_DstClip;
-    OFX::Clip* m_SrcClip;
+    OFX::Clip *m_DstClip;
+    OFX::Clip *m_SrcClip;
 
-    OFX::DoubleParam* m_Pitch;
-    OFX::DoubleParam* m_Yaw;
-    OFX::DoubleParam* m_Roll;
-    OFX::DoubleParam* m_Fov;
+    OFX::DoubleParam *m_Pitch;
+    OFX::DoubleParam *m_Yaw;
+    OFX::DoubleParam *m_Roll;
+    OFX::DoubleParam *m_Fov;
 
-    OFX::IntParam* m_ActiveCamera;
-    OFX::BooleanParam* m_ShowActiveCamera;
-    OFX::PushButtonParam* m_CopyButton;
-    OFX::PushButtonParam* m_PasteButton;
-    OFX::IntParam* m_CopyValue;
+    OFX::IntParam *m_ActiveCamera;
+    OFX::BooleanParam *m_ShowActiveCamera;
+    OFX::PushButtonParam *m_CopyButton;
+    OFX::PushButtonParam *m_PasteButton;
+    OFX::IntParam *m_CopyValue;
 
-    OFX::ChoiceParam* m_InputFormat;
-    
-    OFX::IntParam* m_CameraSequence;
-    OFX::ChoiceParam* m_BlendCurve;
-    OFX::DoubleParam* m_Accel;
+    OFX::ChoiceParam *m_InputFormat;
 
-    OFX::DoubleParam* m_Pitch1;
-    OFX::DoubleParam* m_Yaw1;
-    OFX::DoubleParam* m_Roll1;
-    OFX::DoubleParam* m_Fov1;
-    OFX::DoubleParam* m_Tinyplanet1;
-    OFX::DoubleParam* m_Recti1;
+    OFX::IntParam *m_CameraSequence;
+    OFX::ChoiceParam *m_BlendCurve;
+    OFX::DoubleParam *m_Accel;
 
-    OFX::DoubleParam* m_Pitch2[MAX_CAM_NUM];
-    OFX::DoubleParam* m_Yaw2[MAX_CAM_NUM];
-    OFX::DoubleParam* m_Roll2[MAX_CAM_NUM];
-    OFX::DoubleParam* m_Fov2[MAX_CAM_NUM];
-    OFX::DoubleParam* m_Tinyplanet2[MAX_CAM_NUM];
-    OFX::DoubleParam* m_Recti2[MAX_CAM_NUM];
+    OFX::DoubleParam *m_Pitch1;
+    OFX::DoubleParam *m_Yaw1;
+    OFX::DoubleParam *m_Roll1;
+    OFX::DoubleParam *m_Fov1;
+    OFX::DoubleParam *m_Tinyplanet1;
+    OFX::DoubleParam *m_Recti1;
 
-    OFX::DoubleParam* m_Shutter;
-    OFX::IntParam* m_Samples;
-    OFX::BooleanParam* m_Bilinear;
+    OFX::DoubleParam *m_Pitch2[MAX_CAM_NUM];
+    OFX::DoubleParam *m_Yaw2[MAX_CAM_NUM];
+    OFX::DoubleParam *m_Roll2[MAX_CAM_NUM];
+    OFX::DoubleParam *m_Fov2[MAX_CAM_NUM];
+    OFX::DoubleParam *m_Tinyplanet2[MAX_CAM_NUM];
+    OFX::DoubleParam *m_Recti2[MAX_CAM_NUM];
 
-    template <class TParam>
-    static double getNextKeyframeTime(TParam* param, double time);
-    template <class TParam>
-    static double getPreviousKeyframeTime(TParam* param, double time);
+    OFX::DoubleParam *m_Shutter;
+    OFX::IntParam *m_Samples;
+    OFX::BooleanParam *m_Bilinear;
 
     template <class TParam>
-    static float getPreviousKeyframeValue(TParam* param, double time);
+    static double getNextKeyframeTime(TParam *param, double time);
+    template <class TParam>
+    static double getPreviousKeyframeTime(TParam *param, double time);
 
     template <class TParam>
-    static float getNextKeyframeValue(TParam* param, double time);
+    static float getPreviousKeyframeValue(TParam *param, double time);
 
     template <class TParam>
-    static float getRelativeKeyframeAlpha(TParam* param, double time, double offset);
+    static float getNextKeyframeValue(TParam *param, double time);
 
-    template<class TParam>
-    static bool needsInterPolation(TParam* param, double time);
+    template <class TParam>
+    static float getRelativeKeyframeAlpha(TParam *param, double time, double offset);
 
-    template<class TParam>
-    static bool isFirstKeyFrameTimeOrEarlier(TParam* param, double time);
+    template <class TParam>
+    static bool needsInterPolation(TParam *param, double time);
 
-    template<class TParam>
-    static bool isLastKeyFrameTimeOrLater(TParam* param, double time);
+    template <class TParam>
+    static bool isFirstKeyFrameTimeOrEarlier(TParam *param, double time);
 
-    template<class TParam>
-    static bool isExactlyOnKeyFrame(TParam* param, double time);
+    template <class TParam>
+    static bool isLastKeyFrameTimeOrLater(TParam *param, double time);
 
-    //ReframeParamSet m_ParamStruct;
+    template <class TParam>
+    static bool isExactlyOnKeyFrame(TParam *param, double time);
+
+    // ReframeParamSet m_ParamStruct;
 };
 
 Reframe360::Reframe360(OfxImageEffectHandle p_Handle)
@@ -630,7 +649,7 @@ Reframe360::Reframe360(OfxImageEffectHandle p_Handle)
     m_Fov = fetchDoubleParam("main_fov");
 
     m_InputFormat = fetchChoiceParam("input_format");
-    
+
     m_CameraSequence = fetchIntParam("cam1");
     m_BlendCurve = fetchChoiceParam("blend_curve");
     m_Accel = fetchDoubleParam("accel");
@@ -666,7 +685,7 @@ Reframe360::Reframe360(OfxImageEffectHandle p_Handle)
     setEnabledness();
 }
 
-void Reframe360::render(const OFX::RenderArguments& p_Args)
+void Reframe360::render(const OFX::RenderArguments &p_Args)
 {
     if ((m_DstClip->getPixelDepth() == OFX::eBitDepthFloat) && (m_DstClip->getPixelComponents() == OFX::ePixelComponentRGBA))
     {
@@ -679,12 +698,12 @@ void Reframe360::render(const OFX::RenderArguments& p_Args)
     }
 }
 
-bool Reframe360::isIdentity(const OFX::IsIdentityArguments& p_Args, OFX::Clip*& p_IdentityClip, double& p_IdentityTime)
+bool Reframe360::isIdentity(const OFX::IsIdentityArguments &p_Args, OFX::Clip *&p_IdentityClip, double &p_IdentityTime)
 {
     return false;
 }
 
-void Reframe360::changedParam(const OFX::InstanceChangedArgs& p_Args, const std::string& p_ParamName)
+void Reframe360::changedParam(const OFX::InstanceChangedArgs &p_Args, const std::string &p_ParamName)
 {
     if (p_ParamName.find("active_cam") == 0)
     {
@@ -728,7 +747,7 @@ void Reframe360::changedParam(const OFX::InstanceChangedArgs& p_Args, const std:
     }
 }
 
-void Reframe360::changedClip(const OFX::InstanceChangedArgs& p_Args, const std::string& p_ClipName)
+void Reframe360::changedClip(const OFX::InstanceChangedArgs &p_Args, const std::string &p_ClipName)
 {
     if (p_ClipName == kOfxImageEffectSimpleSourceClipName)
     {
@@ -758,7 +777,7 @@ void Reframe360::setEnabledness() const
     */
 }
 
-static float interpParam(OFX::DoubleParam* param, const OFX::RenderArguments& p_Args, float offset)
+static float interpParam(OFX::DoubleParam *param, const OFX::RenderArguments &p_Args, float offset)
 {
     if (offset == 0)
     {
@@ -770,20 +789,18 @@ static float interpParam(OFX::DoubleParam* param, const OFX::RenderArguments& p_
         float floor = std::floor(offset);
         float frac = offset - floor;
 
-        return (float)param->getValueAtTime(p_Args.time - (floor + 1)) * frac + (float)param->
-            getValueAtTime(p_Args.time - floor) * (1 - frac);
+        return (float)param->getValueAtTime(p_Args.time - (floor + 1)) * frac + (float)param->getValueAtTime(p_Args.time - floor) * (1 - frac);
     }
     else
     {
         float floor = std::floor(offset);
         float frac = offset - floor;
 
-        return (float)param->getValueAtTime(p_Args.time + (floor + 1)) * frac + (float)param->
-            getValueAtTime(p_Args.time + floor) * (1 - frac);
+        return (float)param->getValueAtTime(p_Args.time + (floor + 1)) * frac + (float)param->getValueAtTime(p_Args.time + floor) * (1 - frac);
     }
 }
 
-static int interpParam(OFX::ChoiceParam* param, const OFX::RenderArguments& p_Args, float offset)
+static int interpParam(OFX::ChoiceParam *param, const OFX::RenderArguments &p_Args, float offset)
 {
     float floor = std::floor(offset);
     int value;
@@ -793,7 +810,7 @@ static int interpParam(OFX::ChoiceParam* param, const OFX::RenderArguments& p_Ar
     return value;
 }
 
-void Reframe360::setupAndProcess(ImageScaler& p_ImageScaler, const OFX::RenderArguments& p_Args)
+void Reframe360::setupAndProcess(ImageScaler &p_ImageScaler, const OFX::RenderArguments &p_Args)
 {
     // Get the dst image
     std::auto_ptr<OFX::Image> dst(m_DstClip->fetchImage(p_Args.time));
@@ -817,8 +834,8 @@ void Reframe360::setupAndProcess(ImageScaler& p_ImageScaler, const OFX::RenderAr
           blend = 0.0f;
 
     int mb_inputFormat = interpParam(m_InputFormat, p_Args, 0);
-    //fprintf(stdout, "mb_InputFormat %d \n",mb_inputFormat);
-    
+    // fprintf(stdout, "mb_InputFormat %d \n",mb_inputFormat);
+
     int mb_samples = (int)m_Samples->getValueAtTime(p_Args.time);
     float mb_shutter = (float)m_Shutter->getValueAtTime(p_Args.time);
     int bilinear = m_Bilinear->getValueAtTime(p_Args.time);
@@ -835,10 +852,10 @@ void Reframe360::setupAndProcess(ImageScaler& p_ImageScaler, const OFX::RenderAr
         cam1 = activeCam;
     }
 
-    float* fovs = (float*)malloc(sizeof(float) * mb_samples);
-    float* tinyplanets = (float*)malloc(sizeof(float) * mb_samples);
-    float* rectilinears = (float*)malloc(sizeof(float) * mb_samples);
-    float* rotmats = (float*)malloc(sizeof(float) * mb_samples * 9);
+    float *fovs = (float *)malloc(sizeof(float) * mb_samples);
+    float *tinyplanets = (float *)malloc(sizeof(float) * mb_samples);
+    float *rectilinears = (float *)malloc(sizeof(float) * mb_samples);
+    float *rotmats = (float *)malloc(sizeof(float) * mb_samples * 9);
     // Yaw needs to be inverted in multi threaded rendering... not sure why
     bool invertYaw = !p_Args.isEnabledCudaRender && !p_Args.isEnabledOpenCLRender && !p_Args.isEnabledMetalRender;
 
@@ -896,15 +913,15 @@ void Reframe360::setupAndProcess(ImageScaler& p_ImageScaler, const OFX::RenderAr
             yaw = -yaw;
         }
 
-        float* pitchMat = (float*)calloc(9, sizeof(float));
+        float *pitchMat = (float *)calloc(9, sizeof(float));
         pitchMatrix(-pitch / 180 * (float)M_PI, &pitchMat);
-        float* yawMat = (float*)calloc(9, sizeof(float));
+        float *yawMat = (float *)calloc(9, sizeof(float));
         yawMatrix(yaw / 180 * (float)M_PI, &yawMat);
-        float* rollMat = (float*)calloc(9, sizeof(float));
+        float *rollMat = (float *)calloc(9, sizeof(float));
         rollMatrix(-roll / 180 * (float)M_PI, &rollMat);
 
-        float* pitchRollMat = (float*)calloc(9, sizeof(float));
-        float* rotMat = (float*)calloc(9, sizeof(float));
+        float *pitchRollMat = (float *)calloc(9, sizeof(float));
+        float *rotMat = (float *)calloc(9, sizeof(float));
         matMul(pitchMat, rollMat, &pitchRollMat);
         matMul(yawMat, pitchRollMat, &rotMat);
 
@@ -946,7 +963,7 @@ Reframe360Factory::Reframe360Factory()
 {
 }
 
-void Reframe360Factory::describe(OFX::ImageEffectDescriptor& p_Desc)
+void Reframe360Factory::describe(OFX::ImageEffectDescriptor &p_Desc)
 {
     // Basic labels
     p_Desc.setLabels(kPluginName, kPluginName, kPluginName);
@@ -971,20 +988,20 @@ void Reframe360Factory::describe(OFX::ImageEffectDescriptor& p_Desc)
 
     // Setup OpenCL and CUDA render capability flags
     p_Desc.setSupportsOpenCLRender(true);
-    #ifndef __APPLE__
+#ifndef __APPLE__
     p_Desc.setSupportsCudaRender(true);
-    #endif
-    #ifdef __APPLE__
+#endif
+#ifdef __APPLE__
     p_Desc.setSupportsMetalRender(true);
-    #endif
+#endif
 }
 
-static DoubleParamDescriptor* defineParam(OFX::ImageEffectDescriptor& p_Desc, const std::string& p_Name,
-                                          const std::string& p_Label,
-                                          const std::string& p_Hint, GroupParamDescriptor* p_Parent, float min,
+static DoubleParamDescriptor *defineParam(OFX::ImageEffectDescriptor &p_Desc, const std::string &p_Name,
+                                          const std::string &p_Label,
+                                          const std::string &p_Hint, GroupParamDescriptor *p_Parent, float min,
                                           float max, float default_value, float hardmin = INT_MIN, float hardmax = INT_MAX)
 {
-    DoubleParamDescriptor* param = p_Desc.defineDoubleParam(p_Name);
+    DoubleParamDescriptor *param = p_Desc.defineDoubleParam(p_Name);
 
     param->setLabels(p_Label, p_Label, p_Label);
     param->setScriptName(p_Name);
@@ -1003,13 +1020,13 @@ static DoubleParamDescriptor* defineParam(OFX::ImageEffectDescriptor& p_Desc, co
     return param;
 }
 
-static DoubleParamDescriptor* defineAngleParam(OFX::ImageEffectDescriptor& p_Desc, const std::string& p_Name,
-                                               const std::string& p_Label,
-                                               const std::string& p_Hint, GroupParamDescriptor* p_Parent, float min,
+static DoubleParamDescriptor *defineAngleParam(OFX::ImageEffectDescriptor &p_Desc, const std::string &p_Name,
+                                               const std::string &p_Label,
+                                               const std::string &p_Hint, GroupParamDescriptor *p_Parent, float min,
                                                float max, float default_value, float hardmin = INT_MIN,
                                                float hardmax = INT_MAX)
 {
-    DoubleParamDescriptor* param = p_Desc.defineDoubleParam(p_Name);
+    DoubleParamDescriptor *param = p_Desc.defineDoubleParam(p_Name);
 
     param->setLabels(p_Label, p_Label, p_Label);
     param->setScriptName(p_Name);
@@ -1028,12 +1045,12 @@ static DoubleParamDescriptor* defineAngleParam(OFX::ImageEffectDescriptor& p_Des
     return param;
 }
 
-static IntParamDescriptor* defineIntParam(OFX::ImageEffectDescriptor& p_Desc, const std::string& p_Name,
-                                          const std::string& p_Label,
-                                          const std::string& p_Hint, GroupParamDescriptor* p_Parent, int min, int max,
+static IntParamDescriptor *defineIntParam(OFX::ImageEffectDescriptor &p_Desc, const std::string &p_Name,
+                                          const std::string &p_Label,
+                                          const std::string &p_Hint, GroupParamDescriptor *p_Parent, int min, int max,
                                           int default_value, int hardmin = INT_MIN, int hardmax = INT_MAX)
 {
-    IntParamDescriptor* param = p_Desc.defineIntParam(p_Name);
+    IntParamDescriptor *param = p_Desc.defineIntParam(p_Name);
 
     param->setLabels(p_Label, p_Label, p_Label);
     param->setScriptName(p_Name);
@@ -1050,12 +1067,12 @@ static IntParamDescriptor* defineIntParam(OFX::ImageEffectDescriptor& p_Desc, co
     return param;
 }
 
-static ChoiceParamDescriptor* defineChoiceParam(OFX::ImageEffectDescriptor& p_Desc, const std::string& p_Name,
-                                                const std::string& p_Label,
-                                                const std::string& p_Hint, GroupParamDescriptor* p_Parent, int default_value,
+static ChoiceParamDescriptor *defineChoiceParam(OFX::ImageEffectDescriptor &p_Desc, const std::string &p_Name,
+                                                const std::string &p_Label,
+                                                const std::string &p_Hint, GroupParamDescriptor *p_Parent, int default_value,
                                                 std::string p_ChoiceLabels[], int choiceCount)
 {
-    ChoiceParamDescriptor* param = p_Desc.defineChoiceParam(p_Name);
+    ChoiceParamDescriptor *param = p_Desc.defineChoiceParam(p_Name);
 
     param->setLabels(p_Label, p_Label, p_Label);
     param->setScriptName(p_Name);
@@ -1077,12 +1094,12 @@ static ChoiceParamDescriptor* defineChoiceParam(OFX::ImageEffectDescriptor& p_De
     return param;
 }
 
-static BooleanParamDescriptor* defineBooleanParam(OFX::ImageEffectDescriptor& p_Desc, const std::string& p_Name,
-                                                  const std::string& p_Label,
-                                                  const std::string& p_Hint, GroupParamDescriptor* p_Parent,
+static BooleanParamDescriptor *defineBooleanParam(OFX::ImageEffectDescriptor &p_Desc, const std::string &p_Name,
+                                                  const std::string &p_Label,
+                                                  const std::string &p_Hint, GroupParamDescriptor *p_Parent,
                                                   bool default_value)
 {
-    BooleanParamDescriptor* param = p_Desc.defineBooleanParam(p_Name);
+    BooleanParamDescriptor *param = p_Desc.defineBooleanParam(p_Name);
 
     param->setLabels(p_Label, p_Label, p_Label);
     param->setScriptName(p_Name);
@@ -1097,11 +1114,11 @@ static BooleanParamDescriptor* defineBooleanParam(OFX::ImageEffectDescriptor& p_
     return param;
 }
 
-static PushButtonParamDescriptor* defineButtonParam(OFX::ImageEffectDescriptor& p_Desc, const std::string& p_Name,
-                                                    const std::string& p_Label,
-                                                    const std::string& p_Hint, GroupParamDescriptor* p_Parent)
+static PushButtonParamDescriptor *defineButtonParam(OFX::ImageEffectDescriptor &p_Desc, const std::string &p_Name,
+                                                    const std::string &p_Label,
+                                                    const std::string &p_Hint, GroupParamDescriptor *p_Parent)
 {
-    PushButtonParamDescriptor* param = p_Desc.definePushButtonParam(p_Name);
+    PushButtonParamDescriptor *param = p_Desc.definePushButtonParam(p_Name);
 
     param->setLabels(p_Label, p_Label, p_Label);
     param->setScriptName(p_Name);
@@ -1115,43 +1132,41 @@ static PushButtonParamDescriptor* defineButtonParam(OFX::ImageEffectDescriptor& 
     return param;
 }
 
-
-void Reframe360Factory::describeInContext(OFX::ImageEffectDescriptor& p_Desc, OFX::ContextEnum /*p_Context*/)
+void Reframe360Factory::describeInContext(OFX::ImageEffectDescriptor &p_Desc, OFX::ContextEnum /*p_Context*/)
 {
     // Source clip only in the filter context
     // Create the mandated source clip
-    ClipDescriptor* srcClip = p_Desc.defineClip(kOfxImageEffectSimpleSourceClipName);
+    ClipDescriptor *srcClip = p_Desc.defineClip(kOfxImageEffectSimpleSourceClipName);
     srcClip->addSupportedComponent(ePixelComponentRGBA);
     srcClip->setTemporalClipAccess(false);
     srcClip->setSupportsTiles(kSupportsTiles);
     srcClip->setIsMask(false);
 
     // Create the mandated output clip
-    ClipDescriptor* dstClip = p_Desc.defineClip(kOfxImageEffectOutputClipName);
+    ClipDescriptor *dstClip = p_Desc.defineClip(kOfxImageEffectOutputClipName);
     dstClip->addSupportedComponent(ePixelComponentRGBA);
     dstClip->addSupportedComponent(ePixelComponentAlpha);
     dstClip->setSupportsTiles(kSupportsTiles);
 
     // Make some pages and to things in
-    PageParamDescriptor* page = p_Desc.definePageParam("Controls");
+    PageParamDescriptor *page = p_Desc.definePageParam("Controls");
 
     // Input MaxToEquirect
-    GroupParamDescriptor* inputFormatParamsGroup = p_Desc.defineGroupParam("inputFormatParams");
+    GroupParamDescriptor *inputFormatParamsGroup = p_Desc.defineGroupParam("inputFormatParams");
     inputFormatParamsGroup->setHint("Input format Parameters");
     inputFormatParamsGroup->setLabels("Input format Parameters", "Input format Parameters", "Input format Parameters");
-    
-    std::string inputChoices[] = {"Equirectangular", "GopPro Max", "Equiangular cubemap"}; //Order is fixed by enum INPUT_FORMAT in Reframe360.h
-    ChoiceParamDescriptor* inputFormatParam = defineChoiceParam(p_Desc, "input_format", "Input Format", "Input Format",
+
+    std::string inputChoices[] = {"Equirectangular", "GopPro Max", "Equiangular cubemap"}; // Order is fixed by enum INPUT_FORMAT in Reframe360.h
+    ChoiceParamDescriptor *inputFormatParam = defineChoiceParam(p_Desc, "input_format", "Input Format", "Input Format",
                                                                 inputFormatParamsGroup, 0, inputChoices, 3);
     page->addChild(*inputFormatParam);
-    
-    GroupParamDescriptor* camera1ParamsGroup = p_Desc.defineGroupParam("mainCameraParams");
+
+    GroupParamDescriptor *camera1ParamsGroup = p_Desc.defineGroupParam("mainCameraParams");
     camera1ParamsGroup->setHint("Main Camera Parameters");
     camera1ParamsGroup->setLabels("Main Camera Parameters", "Main Camera Parameters", "Main Camera Parameters");
 
-
     // Make the camera 1 params
-    DoubleParamDescriptor* param = defineAngleParam(p_Desc, "main_pitch", "Pitch", "Up/down camera rotation.  Displayed value might not be in sync with actual camera depending on animation curve parameters.",
+    DoubleParamDescriptor *param = defineAngleParam(p_Desc, "main_pitch", "Pitch", "Up/down camera rotation.  Displayed value might not be in sync with actual camera depending on animation curve parameters.",
                                                     camera1ParamsGroup, -90, 90, 0);
     page->addChild(*param);
 
@@ -1164,40 +1179,40 @@ void Reframe360Factory::describeInContext(OFX::ImageEffectDescriptor& p_Desc, OF
     param = defineParam(p_Desc, "main_fov", "Field of View", "Camera field of view.  Displayed value might not be in sync with actual camera depending on animation curve parameters.", camera1ParamsGroup, 0.15f, 5, 1);
     page->addChild(*param);
 
-    GroupParamDescriptor* animGroup = p_Desc.defineGroupParam("animParams");
+    GroupParamDescriptor *animGroup = p_Desc.defineGroupParam("animParams");
     animGroup->setHint("Camera Animation Parameters");
     animGroup->setLabels("Camera Animation Parameters", "Camera Animation Parameters", "Camera Animation Parameters");
 
-    IntParamDescriptor* intParam = defineIntParam(p_Desc, "cam1", "Camera Sequence", "Camera Sequence", animGroup, 1,
+    IntParamDescriptor *intParam = defineIntParam(p_Desc, "cam1", "Camera Sequence", "Camera Sequence", animGroup, 1,
                                                   20, 1);
     page->addChild(*intParam);
 
     std::string choices[] = {"Power", "Sine", "Exponential", "Circular"};
-    ChoiceParamDescriptor* choiceParam = defineChoiceParam(p_Desc, "blend_curve", "Blend Curve", "Blend Curve",
+    ChoiceParamDescriptor *choiceParam = defineChoiceParam(p_Desc, "blend_curve", "Blend Curve", "Blend Curve",
                                                            animGroup, 0, choices, 4);
     page->addChild(*choiceParam);
 
     param = defineParam(p_Desc, "accel", "Power Acceleration", "Power Acceleration (only used for Power curve mode)", animGroup, 1, 20, 3, 0.5, 20);
     page->addChild(*param);
 
-    GroupParamDescriptor* cameraSelectionParamsGroup = p_Desc.defineGroupParam("cameraSelectionParams");
+    GroupParamDescriptor *cameraSelectionParamsGroup = p_Desc.defineGroupParam("cameraSelectionParams");
     cameraSelectionParamsGroup->setHint("Camera Selection Parameters");
     cameraSelectionParamsGroup->setLabels("Camera Selection Parameters", "Camera Selection Parameters",
-                                         "Camera Selection Parameters");
+                                          "Camera Selection Parameters");
 
     intParam = defineIntParam(p_Desc, "active_cam", "Edit Camera", "Edit Camera", cameraSelectionParamsGroup, 1,
                               MAX_CAM_NUM, 1, 1, 20);
     page->addChild(*intParam);
 
-    BooleanParamDescriptor* boolParam = defineBooleanParam(p_Desc, "show_active_cam", "Show Edit Camera",
+    BooleanParamDescriptor *boolParam = defineBooleanParam(p_Desc, "show_active_cam", "Show Edit Camera",
                                                            "Show Edit Camera", cameraSelectionParamsGroup, false);
     page->addChild(*boolParam);
 
-    GroupParamDescriptor* camera2ParamsGroup = p_Desc.defineGroupParam("auxCameraParams");
+    GroupParamDescriptor *camera2ParamsGroup = p_Desc.defineGroupParam("auxCameraParams");
     camera2ParamsGroup->setHint("Aux Camera Parameters");
     camera2ParamsGroup->setLabels("Aux Camera Parameters", "Aux Camera Parameters", "Aux Camera Parameters");
 
-    PushButtonParamDescriptor* buttonParam = defineButtonParam(p_Desc, "copy_button", "Copy Camera", "Copy Camera",
+    PushButtonParamDescriptor *buttonParam = defineButtonParam(p_Desc, "copy_button", "Copy Camera", "Copy Camera",
                                                                camera2ParamsGroup);
     page->addChild(*buttonParam);
 
@@ -1230,8 +1245,8 @@ void Reframe360Factory::describeInContext(OFX::ImageEffectDescriptor& p_Desc, OF
                         1, 0, 0, 1);
     page->addChild(*param);
 
-    //hidden params
-    GroupParamDescriptor* hiddenCameraParamsGroup = p_Desc.defineGroupParam("hiddenCameraParams");
+    // hidden params
+    GroupParamDescriptor *hiddenCameraParamsGroup = p_Desc.defineGroupParam("hiddenCameraParams");
     hiddenCameraParamsGroup->setHint("Camera Parameters");
     hiddenCameraParamsGroup->setLabels("Camera Parameters", "Camera Parameters", "Camera Parameters");
     hiddenCameraParamsGroup->setIsSecret(true);
@@ -1264,7 +1279,7 @@ void Reframe360Factory::describeInContext(OFX::ImageEffectDescriptor& p_Desc, OF
         page->addChild(*param);
     }
 
-    GroupParamDescriptor* motionblurGroup = p_Desc.defineGroupParam("motionblurParams");
+    GroupParamDescriptor *motionblurGroup = p_Desc.defineGroupParam("motionblurParams");
     motionblurGroup->setHint("Motion Camera Parameters");
     motionblurGroup->setLabels("Motion Blur Parameters", "Motion Blur Parameters", "Motion Blur Parameters");
 
@@ -1274,22 +1289,21 @@ void Reframe360Factory::describeInContext(OFX::ImageEffectDescriptor& p_Desc, OF
     intParam = defineIntParam(p_Desc, "samples", "Samples", "Samples", motionblurGroup, 1, 20, 1, 1, 256);
     page->addChild(*intParam);
 
-    BooleanParamDescriptor* bilinearParam = defineBooleanParam(p_Desc, "bilinear", "Bilinear Filtering",
+    BooleanParamDescriptor *bilinearParam = defineBooleanParam(p_Desc, "bilinear", "Bilinear Filtering",
                                                                "Bilinear Filtering", motionblurGroup, true);
     page->addChild(*bilinearParam);
 }
 
-ImageEffect* Reframe360Factory::createInstance(OfxImageEffectHandle p_Handle, ContextEnum /*p_Context*/)
+ImageEffect *Reframe360Factory::createInstance(OfxImageEffectHandle p_Handle, ContextEnum /*p_Context*/)
 {
     return new Reframe360(p_Handle);
 }
 
-void OFX::Plugin::getPluginIDs(PluginFactoryArray& p_FactoryArray)
+void OFX::Plugin::getPluginIDs(PluginFactoryArray &p_FactoryArray)
 {
     static Reframe360Factory reframe360;
     p_FactoryArray.push_back(&reframe360);
 }
-
 
 std::string Reframe360Factory::paramIdForCam(std::string baseName, int cam)
 {
@@ -1335,8 +1349,8 @@ void Reframe360::setHiddenParam(std::string name, int cam, double value)
     }
 }
 
-template<class TParam>
-float Reframe360::BlendParam(TParam* param, const OFX::RenderArguments& p_Args, float offset) const
+template <class TParam>
+float Reframe360::BlendParam(TParam *param, const OFX::RenderArguments &p_Args, float offset) const
 {
     auto alpha = getRelativeKeyframeAlpha(param, p_Args.time, offset);
     auto blend = BlendFromAlpha(alpha, p_Args, offset);
@@ -1347,7 +1361,7 @@ float Reframe360::BlendParam(TParam* param, const OFX::RenderArguments& p_Args, 
     return blendedValue;
 }
 
-float Reframe360::BlendFromAlpha(float alpha, const OFX::RenderArguments& p_Args, float offset) const
+float Reframe360::BlendFromAlpha(float alpha, const OFX::RenderArguments &p_Args, float offset) const
 {
     float blend = alpha;
     float range[4];
@@ -1374,7 +1388,7 @@ float Reframe360::BlendFromAlpha(float alpha, const OFX::RenderArguments& p_Args
     return blend;
 }
 
-float Reframe360::ApplyBlendCurve(float alpha, const OFX::RenderArguments& p_Args, float offset) const
+float Reframe360::ApplyBlendCurve(float alpha, const OFX::RenderArguments &p_Args, float offset) const
 {
     int blendCurve = interpParam(m_BlendCurve, p_Args, offset);
     float blend;
@@ -1413,8 +1427,8 @@ float Reframe360::ApplyBlendCurve(float alpha, const OFX::RenderArguments& p_Arg
     return blend;
 }
 
-template<class TParam>
-bool Reframe360::needsInterPolation(TParam* param, double time)
+template <class TParam>
+bool Reframe360::needsInterPolation(TParam *param, double time)
 {
     if (isFirstKeyFrameTimeOrEarlier(param, time))
     {
@@ -1434,8 +1448,8 @@ bool Reframe360::needsInterPolation(TParam* param, double time)
     }
 }
 
-template<class TParam>
-bool Reframe360::isExactlyOnKeyFrame(TParam* param, double time)
+template <class TParam>
+bool Reframe360::isExactlyOnKeyFrame(TParam *param, double time)
 {
     double keyTime = 0;
     int keyIndex = param->getKeyIndex(time, eKeySearchNear);
@@ -1453,8 +1467,8 @@ bool Reframe360::isExactlyOnKeyFrame(TParam* param, double time)
     }
 }
 
-template<class TParam>
-bool Reframe360::isFirstKeyFrameTimeOrEarlier(TParam* param, double time)
+template <class TParam>
+bool Reframe360::isFirstKeyFrameTimeOrEarlier(TParam *param, double time)
 {
     int keyIndex = param->getKeyIndex(time, eKeySearchBackwards);
     if (keyIndex == -1)
@@ -1463,8 +1477,8 @@ bool Reframe360::isFirstKeyFrameTimeOrEarlier(TParam* param, double time)
         return false;
 }
 
-template<class TParam>
-bool Reframe360::isLastKeyFrameTimeOrLater(TParam* param, double time)
+template <class TParam>
+bool Reframe360::isLastKeyFrameTimeOrLater(TParam *param, double time)
 {
     int keyIndex = param->getKeyIndex(time, eKeySearchForwards);
     if (keyIndex == -1)
@@ -1474,21 +1488,21 @@ bool Reframe360::isLastKeyFrameTimeOrLater(TParam* param, double time)
 }
 
 template <class TParam>
-double Reframe360::getPreviousKeyframeTime(TParam* param, double time)
+double Reframe360::getPreviousKeyframeTime(TParam *param, double time)
 {
     int keyIndex = param->getKeyIndex(time, eKeySearchBackwards);
     return param->getKeyTime(keyIndex);
 }
 
 template <class TParam>
-double Reframe360::getNextKeyframeTime(TParam* param, double time)
+double Reframe360::getNextKeyframeTime(TParam *param, double time)
 {
     int keyIndex = param->getKeyIndex(time, eKeySearchForwards);
     return param->getKeyTime(keyIndex);
 }
 
 template <class TParam>
-float Reframe360::getRelativeKeyframeAlpha(TParam* param, double time, double offset)
+float Reframe360::getRelativeKeyframeAlpha(TParam *param, double time, double offset)
 {
     double currentTime = time;
     double offsetTime = currentTime + offset;
@@ -1509,7 +1523,7 @@ float Reframe360::getRelativeKeyframeAlpha(TParam* param, double time, double of
 }
 
 template <class TParam>
-float Reframe360::getPreviousKeyframeValue(TParam* param, double time)
+float Reframe360::getPreviousKeyframeValue(TParam *param, double time)
 {
     float outValue = 0;
     double queryTime = time;
@@ -1525,7 +1539,7 @@ float Reframe360::getPreviousKeyframeValue(TParam* param, double time)
 }
 
 template <class TParam>
-float Reframe360::getNextKeyframeValue(TParam* param, double time)
+float Reframe360::getNextKeyframeValue(TParam *param, double time)
 {
     float outValue = 0;
     double queryTime = time;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021  Ronan LE MEILLAT, Stefan SIETZEN, Sylvain GRAVEL
+* Copyright (c) 2019-2024  Ronan LE MEILLAT, Stefan SIETZEN, Sylvain GRAVEL
 * License Apache Software License 2.0
 */
 #include "device_launch_parameters.h"
@@ -396,6 +396,15 @@ __global__ void Reframe360CudaKernel(int p_InputFormat, int p_Width, int p_Heigh
 		float4 accum_col = {0, 0, 0, 0};
 
         float2 uv = { (float)x / p_Width, (float)y / p_Height };
+		switch (p_InputFormat) {
+			case GOPRO_MAX:
+			case EQUIANGULAR_CUBEMAP:
+				// flip y
+				uv.y = 1.0 - uv.y;
+				break;
+			case EQUIRECTANGULAR:
+				break;
+		}
         float aspect = (float)p_Width / (float)p_Height;
            
 		for(int i=0; i<samples; i++){
