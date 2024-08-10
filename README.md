@@ -87,7 +87,53 @@ sudo xattr -r -d com.apple.quarantine /Library/OFX/Plugins/Reframe360.ofx.bundle
 - Choose Equirectangular as the input format (default)
 - Reframe
 
-## Trying with Blackmagic DaVinci Resolve 19 studio and GoPro Max .360 files
+## Using 360.sh for easy GoPro Max Video Processing with Reframe360 XL
+
+The `360.sh` script provides several functions to help process GoPro Max 360 videos for use with Reframe360 XL in DaVinci Resolve. Here's how to use these functions in a MacOS or Linux terminal:
+
+1. First, make sure the `360.sh` script is in your current directory or in your system's PATH.
+
+2. Source the script in your terminal:
+
+   ```bash
+   source 360.sh
+   ```
+
+3. Now you can use the following functions:
+
+   - To create a front video:
+
+     ```bash
+     360_create_front_video_with_path "input.360" "output_front.mov"
+     ```
+
+   - To create a rear video:
+
+     ```bash
+     360_create_rear_video_with_path "input.360" "output_rear.mov"
+     ```
+
+   - To create a merged video ready for use in DaVinci Resolve:
+
+     ```bash
+     360_create_merged_video_with_path "input.360" "output_merged.mov"
+     ```
+
+   - To create both front and rear videos in one command:
+
+     ```bash
+     360_create_front_and_rear_videos "input.360"
+     ```
+
+     This will create `input_front.mov` and `input_rear.mov` in the same directory as the input file.
+
+4. The merged video created by `360_create_merged_video_with_path` is ready to use with the Reframe360 XL plugin in DaVinci Resolve. Import this video into your project and apply the Reframe360 XL filter, selecting "GoPro Max" as the Input Format.
+
+Note: Make sure you have FFmpeg installed on your system, as these functions rely on it for video processing.
+
+These functions will help you prepare your GoPro Max 360 videos for editing in DaVinci Resolve with Reframe360 XL, streamlining your workflow.
+
+## Manual method with Blackmagic DaVinci Resolve 19 studio and GoPro Max .360 files
 
 ### First divide the .360 files in two movies
 
