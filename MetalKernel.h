@@ -1,4 +1,4 @@
-const char* metal_src_Reframe360Kernel =
+const char* metal_src_MetalKernel =
 "//\n"
 "//  Reframe360Kernel.metal\n"
 "//  Reframe360Kernel\n"

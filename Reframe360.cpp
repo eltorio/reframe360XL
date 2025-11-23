@@ -353,19 +353,20 @@ void ImageScaler::processImagesCUDA()
 
 // diasble Metal since there is not yet a metal kernel
 #if defined(__APPLE__)
-extern void RunMetalKernel(void *p_CmdQ, int p_inputFormat, int p_Width, int p_Height, float *p_Fov, float *p_Tinyplanet, float *p_Rectilinear, const float *p_Input, float *p_Output, float *p_RotMat, int p_Samples,
-                           bool p_Bilinear);
+extern void RunMetalKernel(void* p_CmdQ, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, const float* p_Input, float* p_Output,float* p_RotMat, int p_Samples, bool p_Bilinear);
 
 void ImageScaler::processImagesMetal()
 {
-    const OfxRectI &bounds = _srcImg->getBounds();
+    const OfxRectI& bounds = _srcImg->getBounds();
     const int width = bounds.x2 - bounds.x1;
     const int height = bounds.y2 - bounds.y1;
 
-    float *input = static_cast<float *>(_srcImg->getPixelData());
-    float *output = static_cast<float *>(_dstImg->getPixelData());
+    float* input = static_cast<float*>(_srcImg->getPixelData());
+    float* output = static_cast<float*>(_dstImg->getPixelData());
 
-    RunMetalKernel(_pMetalCmdQ, _inputFormat, width, height, _fov, _tinyplanet, _rectilinear, input, output, _rotMat, _samples, _bilinear);
+    static int n = 0;
+    int i = n++;
+    RunMetalKernel(_pMetalCmdQ, width, height, _fov, _tinyplanet, _rectilinear, input, output, _rotMat, _samples, _bilinear);
 }
 #endif
 

@@ -32,6 +32,7 @@ XL is used to point out that new features were put in place and is also a nudge 
 
 ## New Features and Bug Fixes
 
+- Fix Metal kernel on M1 mac.
 - Support GoPro Max pseudo Equiangular cubemap files
 - Support Youtube Equiangular cubemap files
 - New animation curves implemented (Sine, Expo, Circular)

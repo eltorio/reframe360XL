@@ -1,59 +1,70 @@
 #import <Metal/Metal.h>
-#import "Reframe360Kernel.h"
-#import "KernelDebugHelper.h"
+#import "MetalKernel.h"
 
-void RunMetalKernel(void* p_CmdQ, int p_inputFormat, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, const float* p_Input, float* p_Output,float* p_RotMat, int p_Samples,
+#include <unordered_map>
+#include <mutex>
+
+std::mutex s_PipelineQueueMutex;
+typedef std::unordered_map<id<MTLCommandQueue>, id<MTLComputePipelineState>> PipelineQueueMap;
+PipelineQueueMap s_PipelineQueueMap;
+
+void RunMetalKernel(void* p_CmdQ, int p_Width, int p_Height, float* p_Fov, float* p_Tinyplanet, float* p_Rectilinear, const float* p_Input, float* p_Output,float* p_RotMat, int p_Samples,
                             bool p_Bilinear)
 {
     const char* kernelName = "Reframe360Kernel";
 
-    id<MTLDevice>                  device;
-    id<MTLCommandQueue>            queue;
+    id<MTLCommandQueue>            queue = static_cast<id<MTLCommandQueue> >(p_CmdQ);
+    id<MTLDevice>                  device = queue.device;
     id<MTLLibrary>                 metalLibrary;     // Metal library
     id<MTLFunction>                kernelFunction;   // Compute kernel
     id<MTLComputePipelineState>    pipelineState;    // Metal pipeline
     NSError* err;
 
-    if (!(device = MTLCreateSystemDefaultDevice()))
-    {
-    	fprintf(stderr, "Metal is not supported on this device\n");
-    	return;
-    }
-    if (!(queue = [device newCommandQueueWithMaxCommandBufferCount:1]))
-    {
-    	fprintf(stderr, "Unable to resever queue with max command buffer count\n");
-    }
+    std::unique_lock<std::mutex> lock(s_PipelineQueueMutex);
 
-    MTLCompileOptions* options = [MTLCompileOptions new];
-    options.fastMathEnabled = YES;
-    if (!(metalLibrary    = [device newLibraryWithSource:@(metal_src_Reframe360Kernel) options:options error:&err]))
+    const auto it = s_PipelineQueueMap.find(queue);
+    if (it == s_PipelineQueueMap.end())
     {
-        fprintf(stderr, "Failed to load metal library, %s\n", err.localizedDescription.UTF8String);
-        return;
-    }
-    [options release];
-    if (!(kernelFunction  = [metalLibrary newFunctionWithName:[NSString stringWithUTF8String:kernelName]/* constantValues : constantValues */]))
-    {
-        fprintf(stderr, "Failed to retrive kernel\n");
-        [metalLibrary release];
-        return;
-    }
-    if (!(pipelineState   = [device newComputePipelineStateWithFunction:kernelFunction error:&err]))
-    {
-        fprintf(stderr, "Unable to compile, %s\n", err.localizedDescription.UTF8String);
+        id<MTLLibrary>                 metalLibrary;     // Metal library
+        id<MTLFunction>                kernelFunction;   // Compute kernel
+        NSError* err;
+
+        MTLCompileOptions* options = [MTLCompileOptions new];
+        options.fastMathEnabled = YES;
+        if (!(metalLibrary    = [device newLibraryWithSource:@(metal_src_MetalKernel) options:options error:&err]))
+        {
+            fprintf(stderr, "Failed to load metal library, %s\n", err.localizedDescription.UTF8String);
+            return;
+        }
+        [options release];
+        if (!(kernelFunction  = [metalLibrary newFunctionWithName:[NSString stringWithUTF8String:kernelName]/* constantValues : constantValues */]))
+        {
+            fprintf(stderr, "Failed to retrieve kernel\n");
+            [metalLibrary release];
+            return;
+        }
+        if (!(pipelineState   = [device newComputePipelineStateWithFunction:kernelFunction error:&err]))
+        {
+            fprintf(stderr, "Unable to compile, %s\n", err.localizedDescription.UTF8String);
+            [metalLibrary release];
+            [kernelFunction release];
+            return;
+        }
+
+        s_PipelineQueueMap[queue] = pipelineState;
+
+        //Release resources
         [metalLibrary release];
         [kernelFunction release];
-        return;
+    }
+    else
+    {
+        pipelineState = it->second;
     }
 
     id<MTLBuffer> srcDeviceBuf = reinterpret_cast<id<MTLBuffer> >(const_cast<float *>(p_Input));
     id<MTLBuffer> dstDeviceBuf = reinterpret_cast<id<MTLBuffer> >(p_Output);
 
-    id<MTLBuffer> srcFovDeviceBuf = reinterpret_cast<id<MTLBuffer> >(const_cast<float *>(p_Fov));
-    id<MTLBuffer> srcRotMatDeviceBuf = reinterpret_cast<id<MTLBuffer> >(const_cast<float *>(p_RotMat));
-    id<MTLBuffer> srcTinyplanetDeviceBuf = reinterpret_cast<id<MTLBuffer> >(const_cast<float *>(p_Tinyplanet));
-    id<MTLBuffer> srcRectilinearDeviceBuf = reinterpret_cast<id<MTLBuffer> >(const_cast<float *>(p_Rectilinear));
-    
     id<MTLCommandBuffer> commandBuffer = [queue commandBuffer];
     commandBuffer.label = [NSString stringWithFormat:@"Reframe360Kernel"];
 
@@ -64,7 +75,6 @@ void RunMetalKernel(void* p_CmdQ, int p_inputFormat, int p_Width, int p_Height, 
     MTLSize threadGroupCount = MTLSizeMake(exeWidth, 1, 1);
     MTLSize threadGroups     = MTLSizeMake((p_Width + exeWidth - 1)/exeWidth, p_Height, 1);
 
-    ComputePrintDebugInformations("Metal",p_inputFormat, p_Width, p_Height, p_Fov, p_Tinyplanet, p_Rectilinear, p_RotMat, p_Samples, p_Bilinear);
     [computeEncoder setBuffer:srcDeviceBuf offset: 0 atIndex: 0];
     [computeEncoder setBuffer:dstDeviceBuf offset: 0 atIndex: 8];
     [computeEncoder setBytes:&p_Width length:sizeof(int) atIndex:11];
@@ -75,17 +85,8 @@ void RunMetalKernel(void* p_CmdQ, int p_inputFormat, int p_Width, int p_Height, 
     [computeEncoder setBytes:p_RotMat length:(sizeof(float[9])*p_Samples) atIndex:16];
     [computeEncoder setBytes:&p_Samples length:sizeof(int) atIndex:17];
     [computeEncoder setBytes:&p_Bilinear length:sizeof(bool) atIndex:18];
-    [computeEncoder setBytes:&p_inputFormat length:sizeof(int) atIndex:19];
     [computeEncoder dispatchThreadgroups:threadGroups threadsPerThreadgroup: threadGroupCount];
 
     [computeEncoder endEncoding];
     [commandBuffer commit];
-    [commandBuffer waitUntilCompleted];
-
-    //Release resources
-    [metalLibrary release];
-    [kernelFunction release];
-    [pipelineState release];
-    [queue release];
-    [device release];
 }

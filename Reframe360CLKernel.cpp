@@ -111,7 +111,6 @@ void RunOpenCLKernel(void* p_CmdQ, int p_inputFormat, int p_Width, int p_Height,
         deviceId = deviceIdMap[cmdQ];
     }
 
-
     // find the program kernel corresponding to the command queue
     cl_kernel kernel;
 	cl_context clContext = NULL;
